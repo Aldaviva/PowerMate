@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <Version>0.0.1-SNAPSHOT1</Version>
+        <Authors>Ben Hutchison</Authors>
+        <Company>Ben Hutchison</Company>
+        <PackageId>PowerMate</PackageId>
+        <Product>PowerMate</Product>
+        <Description>Receive events from a Griffin PowerMate device over USB.</Description>
+        <Copyright>© 2023 Ben Hutchison</Copyright>
+        <PackageProjectUrl>https://github.com/Aldaviva/PowerMate</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/Aldaviva/PowerMate.git</RepositoryUrl>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+        <PackageTags>griffin powermate hid</PackageTags>
+        <!-- <PackageIcon>icon.jpg</PackageIcon> -->
+
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <IncludeSource>true</IncludeSource>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="HidSharp" Version="2.1.0" />
+        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+    </ItemGroup>
+
+    <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true' or '$(Configuration)' == 'Release'">
+        <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    </PropertyGroup>
+
+</Project>

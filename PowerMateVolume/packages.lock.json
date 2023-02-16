@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "dependencies": {
+    "net7.0-windows7.0": {
+      "CSCore": {
+        "type": "Direct",
+        "requested": "[1.2.1.2, )",
+        "resolved": "1.2.1.2",
+        "contentHash": "DoQKUcdZLQawo3mOg8CvujJD9YkvTt6NtEu7S+OCo8+ySl8eCeUw4LFyL2E1OcAkPU918HZM6sUNcvIMcXWg6g=="
+      },
+      "HidSharp": {
+        "type": "Transitive",
+        "resolved": "2.1.0",
+        "contentHash": "UTdxWvbgp2xzT1Ajaa2va+Qi3oNHJPasYmVhbKI2VVdu1VYP6yUG+RikhsHvpD7iM0S8e8UYb5Qm/LTWxx9QAA=="
+      },
+      "powermate": {
+        "type": "Project",
+        "dependencies": {
+          "HidSharp": "[2.1.0, )"
+        }
+      }
+    },
+    "net7.0-windows7.0/win10-x64": {}
+  }
+}

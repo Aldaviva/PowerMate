@@ -1,0 +1,34 @@
+﻿using PowerMate;
+using PowerMateVolume;
+
+if (!float.TryParse(Environment.GetCommandLineArgs().ElementAtOrDefault(1), out float volumeIncrement)) {
+    volumeIncrement = 0.01f;
+}
+
+using IPowerMate    powerMateListener = new PowerMateImpl();
+using VolumeChanger volumeChanger     = new VolumeChangerImpl { volumeIncrement = volumeIncrement };
+
+CancellationTokenSource cancellationTokenSource = new();
+Console.CancelKeyPress += (_, eventArgs) => {
+    eventArgs.Cancel = true;
+    cancellationTokenSource.Cancel();
+};
+
+powerMateListener.OnInput += (_, powerMateEvent) => {
+    switch (powerMateEvent) {
+        case { IsPressed: true, IsRotationClockwise: null }:
+            volumeChanger.toggleMute();
+            break;
+        case { IsPressed: false, IsRotationClockwise: true }:
+            volumeChanger.increaseVolume((int) powerMateEvent.RotationDistance);
+            break;
+        case { IsPressed: false, IsRotationClockwise: false }:
+            volumeChanger.increaseVolume(-1 * (int) powerMateEvent.RotationDistance);
+            break;
+        default:
+            break;
+    }
+};
+
+Console.WriteLine("Listening for PowerMate events");
+cancellationTokenSource.Token.WaitHandle.WaitOne();
