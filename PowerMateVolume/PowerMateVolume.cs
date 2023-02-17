@@ -14,7 +14,7 @@ Console.CancelKeyPress += (_, eventArgs) => {
     cancellationTokenSource.Cancel();
 };
 
-powerMateClient.OnInput += (_, powerMateEvent) => {
+powerMateClient.InputReceived += (_, powerMateEvent) => {
     switch (powerMateEvent) {
         case { IsPressed: true, IsRotationClockwise: null }:
             volumeChanger.toggleMute();

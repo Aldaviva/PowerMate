@@ -34,8 +34,8 @@ public class PowerMateClientTest {
     public void Pressed() {
         PowerMateClient      client       = new(_deviceList);
         ManualResetEventSlim eventArrived = new();
-        PowerMateEvent?      actualEvent  = null;
-        client.OnInput += (_, @event) => {
+        PowerMateInput?      actualEvent  = null;
+        client.InputReceived += (_, @event) => {
             actualEvent = @event;
             eventArrived.Set();
         };
@@ -52,19 +52,24 @@ public class PowerMateClientTest {
             Enumerable.Empty<HidDevice>(),
             new[] { _device });
 
-        ManualResetEventSlim eventArrived = new();
-        PowerMateClient      client       = new(_deviceList);
-        PowerMateEvent?      actualEvent  = null;
-        client.OnInput += (_, @event) => {
+        bool?                connectedEventArg = null;
+        ManualResetEventSlim eventArrived      = new();
+        PowerMateClient      client            = new(_deviceList);
+        client.IsConnected.Should().BeFalse();
+        PowerMateInput? actualEvent = null;
+        client.InputReceived += (_, @event) => {
             actualEvent = @event;
             eventArrived.Set();
         };
+        client.IsConnectedChanged += (sender, b) => connectedEventArg = b;
 
         actualEvent.HasValue.Should().BeFalse();
 
         _deviceList.RaiseChanged();
 
         eventArrived.Wait(1000);
+        client.IsConnected.Should().BeTrue();
+        connectedEventArg.Should().BeTrue();
         actualEvent.HasValue.Should().BeTrue();
         actualEvent!.Value.IsPressed.Should().BeTrue();
         actualEvent!.Value.IsRotationClockwise.Should().BeNull();
@@ -86,8 +91,8 @@ public class PowerMateClientTest {
 
         ManualResetEventSlim eventArrived = new();
         PowerMateClient      client       = new(_deviceList);
-        PowerMateEvent?      actualEvent  = null;
-        client.OnInput += (_, @event) => {
+        PowerMateInput?      actualEvent  = null;
+        client.InputReceived += (_, @event) => {
             actualEvent = @event;
             eventArrived.Set();
         };

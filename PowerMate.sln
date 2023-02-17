@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PowerMate", "PowerMate\Powe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{15A3069C-24B8-4C48-ABFF-8711ED44D07E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo", "Demo\Demo.csproj", "{CE445757-89CA-4EDC-B8C9-4358CF2706CB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{15A3069C-24B8-4C48-ABFF-8711ED44D07E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{15A3069C-24B8-4C48-ABFF-8711ED44D07E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{15A3069C-24B8-4C48-ABFF-8711ED44D07E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CE445757-89CA-4EDC-B8C9-4358CF2706CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE445757-89CA-4EDC-B8C9-4358CF2706CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE445757-89CA-4EDC-B8C9-4358CF2706CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE445757-89CA-4EDC-B8C9-4358CF2706CB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
