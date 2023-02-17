@@ -23,10 +23,9 @@ public readonly struct PowerMateEvent {
     private static uint GetRotationDistance(IReadOnlyList<byte> rawData) => (uint) Math.Abs((int) (sbyte) rawData[2]);
 
     private static bool? GetRotationDirection(IReadOnlyList<byte> rawData) => rawData[2] switch {
-        0     => null,
-        < 128 => true,
-        > 128 => false,
-        _     => null
+        > 0 and < 128 => true,
+        > 128         => false,
+        0 or _        => null
     };
 
     public bool Equals(PowerMateEvent other) {

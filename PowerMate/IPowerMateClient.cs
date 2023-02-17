@@ -3,7 +3,7 @@
 /// <summary>
 /// Listen for events from a connected Griffin PowerMate.
 /// </summary>
-public interface IPowerMate: IDisposable {
+public interface IPowerMateClient: IDisposable {
 
     /// <summary>
     /// Fired when an event is received from the device

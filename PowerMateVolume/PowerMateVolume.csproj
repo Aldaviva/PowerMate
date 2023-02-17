@@ -16,6 +16,7 @@
         <Product>$(AssemblyTitle)</Product> <!-- Product name -->
         <FileVersion>$(Version)</FileVersion>
         <ApplicationManifest>app.manifest</ApplicationManifest> <!-- File version -->
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
 
     <ItemGroup>

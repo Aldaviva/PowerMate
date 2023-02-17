@@ -3,22 +3,28 @@ using HidSharp;
 
 namespace PowerMate;
 
-public class PowerMateImpl: IPowerMate {
+/// <inheritdoc />
+public class PowerMateClient: IPowerMateClient {
 
-    private const int PowermateVendorId  = 0x077d;
-    private const int PowermateProductId = 0x0410;
+    private const int PowerMateVendorId  = 0x077d;
+    private const int PowerMateProductId = 0x0410;
     private const int MessageLength      = 7;
 
-    private readonly DeviceList _deviceList = DeviceList.Local;
+    private readonly DeviceList _deviceList;
 
+    /// <inheritdoc />
     public event EventHandler<PowerMateEvent>? OnInput;
 
+    /// <inheritdoc />
     public SynchronizationContext EventSynchronizationContext { get; set; } = SynchronizationContext.Current ?? new SynchronizationContext();
 
     private CancellationTokenSource? _cancellationTokenSource;
     private HidStream?               _hidStream;
 
-    public PowerMateImpl() {
+    public PowerMateClient(): this(DeviceList.Local) { }
+
+    internal PowerMateClient(DeviceList deviceList) {
+        _deviceList         =  deviceList;
         _deviceList.Changed += onDeviceListChanged;
         AttachToDevice();
     }
@@ -29,9 +35,7 @@ public class PowerMateImpl: IPowerMate {
         }
     }
 
-    private void AttachToDevice() {
-        AttachToDevice(_deviceList.GetHidDeviceOrNull(PowermateVendorId, PowermateProductId));
-    }
+    private void AttachToDevice() => AttachToDevice(_deviceList.GetHidDeviceOrNull(PowerMateVendorId, PowerMateProductId));
 
     private void AttachToDevice(HidDevice? device) {
         _hidStream?.Dispose();
@@ -45,7 +49,6 @@ public class PowerMateImpl: IPowerMate {
 
             try {
                 Task.Factory.StartNew(HidReadLoop, _cancellationTokenSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-
             } catch (TaskCanceledException) { }
         }
     }
@@ -56,7 +59,9 @@ public class PowerMateImpl: IPowerMate {
         try {
             while (!cancellationToken.IsCancellationRequested) {
                 byte[] readBuffer = new byte[MessageLength];
-                if (readBuffer.Length == await _hidStream!.ReadAsync(readBuffer, 0, readBuffer.Length, cancellationToken)) {
+                int    readBytes  = await _hidStream!.ReadAsync(readBuffer, 0, readBuffer.Length, cancellationToken);
+                if (readBuffer.Length == readBytes) {
+                    Console.WriteLine($"Received HID bytes: {string.Join(string.Empty, readBuffer.Select(b => $"{b:X2}"))}");
                     PowerMateEvent powerMateEvent = new(readBuffer);
                     EventSynchronizationContext.Post(_ => { OnInput?.Invoke(this, powerMateEvent); }, null);
                 }
