@@ -13,8 +13,8 @@
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-        <PackageTags>griffin powermate hid</PackageTags>
-        <!-- <PackageIcon>icon.jpg</PackageIcon> -->
+        <PackageTags>griffin powermate hid rotary-encoder</PackageTags>
+        <PackageIcon>icon.jpg</PackageIcon>
 
         <TargetFramework>netstandard2.0</TargetFramework>
         <LangVersion>latest</LangVersion>
@@ -32,8 +32,22 @@
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
     </ItemGroup>
 
+    <ItemGroup>
+        <None Include="icon.jpg" Pack="true" PackagePath="\" />
+    </ItemGroup>
+
     <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true' or '$(Configuration)' == 'Release'">
         <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
     </PropertyGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Tests" />
+    </ItemGroup>
+
+    <!--<ItemGroup>
+      <Reference Include="HidSharp">
+        <HintPath>..\..\hidsharp\bin\netstandard2.0\HidSharp.dll</HintPath>
+      </Reference>
+    </ItemGroup>-->
 
 </Project>
