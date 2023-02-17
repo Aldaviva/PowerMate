@@ -1,8 +1,9 @@
 ﻿using HidSharp;
 using PowerMate;
 
+Console.WriteLine("All devices:");
 foreach (Device device in DeviceList.Local.GetAllDevices()) {
-    Console.WriteLine($"Detected device {device.GetFriendlyName()}");
+    Console.WriteLine($" {device.GetFriendlyName()}");
 }
 
 using IPowerMateClient powerMate = new PowerMateClient();

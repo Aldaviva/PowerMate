@@ -4,6 +4,8 @@ namespace Tests;
 
 public class PowerMateClientTest {
 
+    private static readonly TimeSpan TestTimeout = TimeSpan.FromSeconds(4);
+
     private readonly HidDevice  _device     = A.Fake<HidDevice>();
     private readonly DeviceList _deviceList = A.Fake<DeviceList>();
     private readonly HidStream  _stream     = A.Fake<HidStream>();
@@ -39,7 +41,7 @@ public class PowerMateClientTest {
             actualEvent = @event;
             eventArrived.Set();
         };
-        eventArrived.Wait(1000);
+        eventArrived.Wait(TestTimeout);
         actualEvent.HasValue.Should().BeTrue();
         actualEvent!.Value.IsPressed.Should().BeTrue();
         actualEvent!.Value.IsRotationClockwise.Should().BeNull();
@@ -52,22 +54,25 @@ public class PowerMateClientTest {
             Enumerable.Empty<HidDevice>(),
             new[] { _device });
 
-        bool?                connectedEventArg = null;
-        ManualResetEventSlim eventArrived      = new();
-        PowerMateClient      client            = new(_deviceList);
+        bool?           connectedEventArg = null;
+        CountdownEvent  eventsArrived     = new(2);
+        PowerMateClient client            = new(_deviceList);
         client.IsConnected.Should().BeFalse();
         PowerMateInput? actualEvent = null;
         client.InputReceived += (_, @event) => {
             actualEvent = @event;
-            eventArrived.Set();
+            eventsArrived.AddCount();
         };
-        client.IsConnectedChanged += (sender, b) => connectedEventArg = b;
+        client.IsConnectedChanged += (sender, b) => {
+            connectedEventArg = b;
+            eventsArrived.AddCount();
+        };
 
         actualEvent.HasValue.Should().BeFalse();
 
         _deviceList.RaiseChanged();
 
-        eventArrived.Wait(1000);
+        eventsArrived.Wait(TestTimeout);
         client.IsConnected.Should().BeTrue();
         connectedEventArg.Should().BeTrue();
         actualEvent.HasValue.Should().BeTrue();
@@ -101,7 +106,7 @@ public class PowerMateClientTest {
 
         _deviceList.RaiseChanged();
 
-        eventArrived.Wait(1000);
+        eventArrived.Wait(TestTimeout);
         actualEvent.HasValue.Should().BeTrue();
         actualEvent!.Value.IsPressed.Should().BeTrue();
         actualEvent!.Value.IsRotationClockwise.Should().BeNull();
@@ -115,7 +120,7 @@ public class PowerMateClientTest {
         A.CallTo(() => synchronizationContext.Post(A<SendOrPostCallback>._, An<object?>._)).Invokes(() => eventArrived.Set());
 
         PowerMateClient client = new(_deviceList) { EventSynchronizationContext = synchronizationContext };
-        eventArrived.Wait(1000);
+        eventArrived.Wait(TestTimeout);
 
         A.CallTo(() => synchronizationContext.Post(A<SendOrPostCallback>._, An<object?>._)).MustHaveHappenedOnceOrMore();
     }
