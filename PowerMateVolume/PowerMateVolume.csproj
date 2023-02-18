@@ -24,7 +24,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\PowerMate\PowerMate.csproj" />
+        <ProjectReference Include="..\PowerMate\PowerMate.csproj" />
     </ItemGroup>
 
 </Project>
