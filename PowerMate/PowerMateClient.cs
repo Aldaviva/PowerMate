@@ -12,8 +12,8 @@ public class PowerMateClient: IPowerMateClient {
 
     private readonly object _hidStreamLock = new();
 
-    private DeviceList _deviceList;
-    private bool       _isConnected;
+    private DeviceList? _deviceList;
+    private bool        _isConnected;
 
     /// <inheritdoc />
     public bool IsConnected {
@@ -69,7 +69,7 @@ public class PowerMateClient: IPowerMateClient {
         bool isNewStream = false;
         lock (_hidStreamLock) {
             if (_hidStream == null) {
-                HidDevice? newDevice = _deviceList.GetHidDeviceOrNull(PowerMateVendorId, PowerMateProductId);
+                HidDevice? newDevice = _deviceList?.GetHidDeviceOrNull(PowerMateVendorId, PowerMateProductId);
                 if (newDevice != null) {
                     _hidStream  = newDevice.Open();
                     isNewStream = true;
@@ -156,8 +156,10 @@ public class PowerMateClient: IPowerMateClient {
                 }
             }
 
-            _deviceList.Changed -= onDeviceListChanged;
-            _deviceList         =  null!;
+            if (_deviceList != null) {
+                _deviceList.Changed -= onDeviceListChanged;
+                _deviceList         =  null;
+            }
         }
     }
 

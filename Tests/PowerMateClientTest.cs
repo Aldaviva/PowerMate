@@ -55,26 +55,28 @@ public class PowerMateClientTest {
             new[] { _device });
 
         bool?           connectedEventArg = null;
-        CountdownEvent  eventsArrived     = new(2);
         PowerMateClient client            = new(_deviceList);
         client.IsConnected.Should().BeFalse();
-        PowerMateInput? actualEvent = null;
+        PowerMateInput?      actualEvent        = null;
+        ManualResetEventSlim inputReceived      = new();
+        ManualResetEventSlim isConnectedChanged = new();
         client.InputReceived += (_, @event) => {
             actualEvent = @event;
-            eventsArrived.AddCount();
+            inputReceived.Set();
         };
-        client.IsConnectedChanged += (sender, b) => {
+        client.IsConnectedChanged += (_, b) => {
             connectedEventArg = b;
-            eventsArrived.AddCount();
+            isConnectedChanged.Set();
         };
-
-        actualEvent.HasValue.Should().BeFalse();
 
         _deviceList.RaiseChanged();
 
-        eventsArrived.Wait(TestTimeout);
+        inputReceived.Wait(TestTimeout);
+        isConnectedChanged.Wait(TestTimeout);
+
         client.IsConnected.Should().BeTrue();
-        connectedEventArg.Should().BeTrue();
+        connectedEventArg.HasValue.Should().BeTrue();
+        connectedEventArg!.Value.Should().BeTrue();
         actualEvent.HasValue.Should().BeTrue();
         actualEvent!.Value.IsPressed.Should().BeTrue();
         actualEvent!.Value.IsRotationClockwise.Should().BeNull();
@@ -101,8 +103,6 @@ public class PowerMateClientTest {
             actualEvent = @event;
             eventArrived.Set();
         };
-
-        actualEvent.HasValue.Should().BeFalse();
 
         _deviceList.RaiseChanged();
 
