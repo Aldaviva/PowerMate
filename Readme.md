@@ -59,9 +59,13 @@ powerMate.InputReceived += (sender, input) => {
     - [.NET Core 2.0 or later](https://dotnet.microsoft.com/en-us/download/dotnet)
     - [.NET Framework 4.6.1 or later](https://dotnet.microsoft.com/en-us/download/dotnet-framework)
 - A supported operating system
-    - ✅ Windows (verified on 10 22H2 and 11 22H2)
-    - ✅ MacOS (verified on 12.6)
-    - ❓ Linux is currently unverified
+    - ✅ Windows
+        - verified on 10 22H2, x64
+        - verified on 11 22H2, x64
+    - ✅ MacOS
+        - verified on 12.6, x64
+    - ❌ Linux is not supported
+        - on Fedora 37 and Debian 11, the PowerMate is never detected by [HIDSharp](https://www.nuget.org/packages/HidSharp/), even though it appears with `lsusb`
 
 ## Installation
 
