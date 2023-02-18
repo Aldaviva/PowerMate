@@ -5,7 +5,6 @@ PowerMate
 
 *Receive events from a Griffin PowerMate device over USB*
 
-<p>
 <!-- MarkdownTOC autolink="true" bracket="round" autoanchor="false" levels="1,2,3" bullets="1.,-,-,-" -->
 
 1. [Quick Start](#quick-start)
@@ -20,7 +19,6 @@ PowerMate
 1. [Acknowledgements](#acknowledgements)
 
 <!-- /MarkdownTOC -->
-</p>
 
 ![Griffin PowerMate](https://raw.githubusercontent.com/Aldaviva/PowerMate/master/.github/images/readme-header.jpg)
 
