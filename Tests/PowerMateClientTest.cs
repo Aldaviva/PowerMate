@@ -131,4 +131,11 @@ public class PowerMateClientTest {
         client.Dispose();
     }
 
+    [Fact]
+    public void DisposeIdempotent() {
+        PowerMateClient client = new(_deviceList);
+        client.Dispose();
+        client.Dispose();
+    }
+
 }

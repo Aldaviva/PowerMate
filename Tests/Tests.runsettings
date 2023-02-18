@@ -7,10 +7,9 @@
                 <Configuration>
                     <Format>lcov</Format>
 
-                    <!-- Exclusion rules are not synchronized with dotCover, which are controlled by BehringerXTouchExtender.sln.DotSettings -->
+                    <!-- Exclusion rules are not synchronized with dotCover, which are controlled by PowerMate.sln.DotSettings -->
                     <!-- Syntax: https://github.com/coverlet-coverage/coverlet/blob/master/Documentation/MSBuildIntegration.md#filters -->
-                    <Exclude>[PowerMateVolume]*</Exclude>
-                    <!--<Exclude>[*]*.Facades?.*,[*]*.Façades?.*</Exclude>--> <!-- All types in a Facade, Facades, Façade, or Façades namespace folder -->
+                    <Exclude>[PowerMateVolume]*,[Demo]*</Exclude>
                 </Configuration>
             </DataCollector>
         </DataCollectors>

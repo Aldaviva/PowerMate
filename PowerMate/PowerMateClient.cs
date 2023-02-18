@@ -1,4 +1,5 @@
-﻿using HidSharp;
+﻿using System.ComponentModel;
+using HidSharp;
 
 namespace PowerMate;
 
@@ -9,22 +10,30 @@ public class PowerMateClient: IPowerMateClient {
     private const int PowerMateProductId = 0x0410;
     private const int MessageLength      = 7;
 
-    private readonly DeviceList _deviceList;
-    private readonly object     _hidStreamLock = new();
+    private readonly object _hidStreamLock = new();
 
-    private bool _isConnected;
+    private DeviceList _deviceList;
+    private bool       _isConnected;
 
+    /// <inheritdoc />
     public bool IsConnected {
         get => _isConnected;
         private set {
             if (value != _isConnected) {
                 _isConnected = value;
-                EventSynchronizationContext.Post(_ => IsConnectedChanged?.Invoke(this, value), null);
+                EventSynchronizationContext.Post(_ => {
+                    IsConnectedChanged?.Invoke(this, value);
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsConnected)));
+                }, null);
             }
         }
     }
 
+    /// <inheritdoc />
     public event EventHandler<bool>? IsConnectedChanged;
+
+    /// <inheritdoc />
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     /// <inheritdoc />
     public event EventHandler<PowerMateInput>? InputReceived;
@@ -35,6 +44,15 @@ public class PowerMateClient: IPowerMateClient {
     private CancellationTokenSource? _cancellationTokenSource;
     private HidStream?               _hidStream;
 
+    /// <summary>
+    /// <para>Constructs a new instance that communicates with a PowerMate device.</para>
+    /// <para>Upon construction, the new instance will immediately attempt to connect to any PowerMate connected to your computer. If none are connected, it will wait and connect when one is plugged
+    /// in. If a PowerMate disconnects, it will try to reconnect whenever one is plugged in again.</para>
+    /// <para>If multiple PowerMate devices are present, it will pick one arbitrarily and connect to it.</para>
+    /// <para>Once you have constructed an instance, you can subscribe to <see cref="InputReceived"/> events to be notified when the PowerMate knob is rotated, pressed, or released.</para>
+    /// <para>You can also subscribe to <see cref="IsConnectedChanged"/> or <see cref="INotifyPropertyChanged.PropertyChanged"/> to be notified when it connects or disconnects from a PowerMate.</para>
+    /// <para>Remember to dispose of this instance when you're done using it by calling <see cref="Dispose()"/>, or with a <see langword="using" /> statement or declaration.</para>
+    /// </summary>
     public PowerMateClient(): this(DeviceList.Local) { }
 
     internal PowerMateClient(DeviceList deviceList) {
@@ -44,7 +62,6 @@ public class PowerMateClient: IPowerMateClient {
     }
 
     private void onDeviceListChanged(object? sender, DeviceListChangedEventArgs e) {
-        // Console.WriteLine("Device list changed, reattaching...");
         AttachToDevice();
     }
 
@@ -54,7 +71,6 @@ public class PowerMateClient: IPowerMateClient {
             if (_hidStream == null) {
                 HidDevice? newDevice = _deviceList.GetHidDeviceOrNull(PowerMateVendorId, PowerMateProductId);
                 if (newDevice != null) {
-                    // Console.WriteLine($"Attach to device {newDevice.GetFriendlyName() ?? "null"}");
                     _hidStream  = newDevice.Open();
                     isNewStream = true;
                 }
@@ -62,7 +78,6 @@ public class PowerMateClient: IPowerMateClient {
         }
 
         if (_hidStream != null && isNewStream) {
-            // Console.WriteLine("Registered _hidStream.Closed event handler");
             _hidStream.Closed        += ReattachToDevice;
             _hidStream.ReadTimeout   =  Timeout.Infinite;
             _cancellationTokenSource =  new CancellationTokenSource();
@@ -73,8 +88,6 @@ public class PowerMateClient: IPowerMateClient {
 
             IsConnected = true;
         }
-
-        // Console.WriteLine("Done attaching to device");
     }
 
     private async Task HidReadLoop() {
@@ -90,7 +103,6 @@ public class PowerMateClient: IPowerMateClient {
                 }
             }
         } catch (IOException) {
-            // Console.WriteLine("PowerMate disconnected, reconnecting...");
             ReattachToDevice();
         }
     }
@@ -98,12 +110,10 @@ public class PowerMateClient: IPowerMateClient {
     private void ReattachToDevice(object? sender = null, EventArgs? e = null) {
         bool disconnected = false;
         lock (_hidStreamLock) {
-            // Console.WriteLine("Reattaching to device");
             if (_hidStream != null) {
                 _hidStream.Closed -= ReattachToDevice;
                 _hidStream.Close();
                 _hidStream.Dispose();
-                // Console.WriteLine("ReattachToDevice: setting _hidstream to null");
                 _hidStream   = null;
                 disconnected = true;
             }
@@ -120,30 +130,44 @@ public class PowerMateClient: IPowerMateClient {
         AttachToDevice();
     }
 
+    /// <summary>
+    /// <para>Clean up managed and, optionally, unmanaged resources.</para>
+    /// <para>When inheriting from <see cref="PowerMateClient"/>, you should override this method, dispose of your managed resources if <paramref name="disposing"/> is <see langword="true" />, then
+    /// free your unmanaged resources regardless of the value of <paramref name="disposing"/>, and finally call this base <see cref="Dispose(bool)"/> implementation.</para>
+    /// <para>For more information, see <see url="https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/implementing-dispose#implement-the-dispose-pattern-for-a-derived-class">Implement
+    /// the dispose pattern for a derived class</see>.</para>
+    /// </summary>
+    /// <param name="disposing">Should be <see langword="false" /> when called from a finalizer, and <see langword="true" /> when called from the <see cref="Dispose()"/> method. In other words, it is
+    /// <see langword="true" /> when deterministically called and <see langword="false" /> when non-deterministically called.</param>
     protected virtual void Dispose(bool disposing) {
         if (disposing) {
-            // Console.WriteLine("Dispose() called");
             try {
                 _cancellationTokenSource?.Cancel();
                 _cancellationTokenSource?.Dispose();
+                _cancellationTokenSource = null;
             } catch (AggregateException) { }
 
             lock (_hidStreamLock) {
                 if (_hidStream != null) {
-                    // Console.WriteLine("Dispose: unregistering _hidStream.Closed event handler");
                     _hidStream.Closed -= ReattachToDevice;
-                    // Console.WriteLine("Dispose: closing _hidstream");
                     _hidStream.Close();
-                    // Console.WriteLine("Dispose: disposing _hidstream");
                     _hidStream.Dispose();
                     _hidStream = null;
                 }
             }
 
             _deviceList.Changed -= onDeviceListChanged;
+            _deviceList         =  null!;
         }
     }
 
+    /// <summary>
+    /// <para>Disconnect from any connected PowerMate device and clean up managed resources.</para>
+    /// <para><see cref="IsConnectedChanged"/> and <see cref="INotifyPropertyChanged.PropertyChanged"/> events will not be emitted if a PowerMate is disconnected during disposal.</para>
+    /// <para>Subclasses of <see cref="PowerMateClient"/> should override <see cref="Dispose(bool)"/>.</para>
+    /// <para>For more information, see <see url="https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/unmanaged">Cleaning Up Unmanaged Resources</see> and
+    /// <see url="https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/implementing-dispose">Implementing a Dispose Method</see>.</para>
+    /// </summary>
     public void Dispose() {
         Dispose(true);
         GC.SuppressFinalize(this);

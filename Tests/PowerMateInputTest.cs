@@ -1,6 +1,6 @@
 namespace Tests;
 
-public class PowerMateEventTest {
+public class PowerMateInputTest {
 
     [Fact]
     public void Pressed() {

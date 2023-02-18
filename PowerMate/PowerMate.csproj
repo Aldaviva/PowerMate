@@ -28,6 +28,14 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <None Remove="ExceptionAdjustments.txt" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <AdditionalFiles Include="ExceptionAdjustments.txt" />
+    </ItemGroup>
+
+    <ItemGroup>
         <PackageReference Include="HidSharp" Version="2.1.0" />
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
     </ItemGroup>
