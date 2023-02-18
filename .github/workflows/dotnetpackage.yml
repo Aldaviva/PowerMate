@@ -53,11 +53,11 @@ jobs:
         New-Item -Name Demo/bin/Release/upload/Windows -Type Directory -ErrorAction SilentlyContinue
         New-Item -Name Demo/bin/Release/upload/MacOS -Type Directory -ErrorAction SilentlyContinue
 
-        Copy-Item PowerMateVolume/bin/Release/net7.0-windows7.0/win10-x64/publish/PowerMateVolume.exe Demo/bin/Release/upload/Windows/PowerMateVolume-win10-x64.exe
+        Copy-Item PowerMateVolume/bin/Release/net7.0-windows7.0/win10-x64/publish/PowerMateVolume.exe Demo/bin/Release/upload/Windows/PowerMateVolume.exe
         Copy-Item Demo/bin/Release/net7.0/win10-x64/publish/Demo.exe Demo/bin/Release/upload/Windows/Demo-x64.exe
-        Copy-Item Demo/bin/Release/net7.0/win10-arm64/publish/Demo.exe Demo/bin/Release/upload/Windows/Demo-arm64.exe
+        Copy-Item Demo/bin/Release/net7.0/win10-arm64/publish/Demo.exe Demo/bin/Release/upload/Windows/Demo-ARM64.exe
         Copy-Item Demo/bin/Release/net7.0/osx-x64/publish/Demo Demo/bin/Release/upload/MacOS/Demo-x64
-        Copy-Item Demo/bin/Release/net7.0/osx-arm64/publish/Demo Demo/bin/Release/upload/MacOS/Demo-arm64
+        Copy-Item Demo/bin/Release/net7.0/osx-arm64/publish/Demo Demo/bin/Release/upload/MacOS/Demo-ARM64
 
     - name: Upload demos
       uses: actions/upload-artifact@v3.1.2

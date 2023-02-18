@@ -13,8 +13,11 @@ PowerMate
 1. [Usage](#usage)
     - [Connections](#connections)
 1. [Events](#events)
-    - [`InputReceived`](#inputreceived)
-    - [`IsConnectedChanged`](#isconnectedchanged)
+    - [InputReceived](#inputreceived)
+    - [IsConnectedChanged](#isconnectedchanged)
+1. [Demos](#demos)
+    - [Simple demo](#simple-demo)
+    - [Volume control](#volume-control)
 1. [Limitations](#limitations)
 1. [Acknowledgements](#acknowledgements)
 
@@ -60,12 +63,12 @@ powerMate.InputReceived += (sender, input) => {
     - [.NET Framework 4.6.1 or later](https://dotnet.microsoft.com/en-us/download/dotnet-framework)
 - A supported operating system
     - ✅ Windows
-        - verified on 10 22H2, x64
-        - verified on 11 22H2, x64
+        - verified on 10 22H2 x64
+        - verified on 11 22H2 x64
     - ✅ MacOS
-        - verified on 12.6, x64
+        - verified on 12.6 x64
     - ❌ Linux is not supported
-        - on Fedora 37 and Debian 11, the PowerMate is never detected by [HIDSharp](https://www.nuget.org/packages/HidSharp/), even though it appears with `lsusb`
+        - on Fedora 37, Debian 11, Raspbian 11, and openSUSE 15, the PowerMate is never detected by [HIDSharp](https://www.nuget.org/packages/HidSharp/), even though it appears with `lsusb`
 
 ## Installation
 
@@ -110,7 +113,7 @@ powerMate.IsConnectedChanged += (_, isConnected) => Console.WriteLine(isConnecte
 
 ## Events
 
-### `InputReceived`
+### InputReceived
 
 Fired whenever the PowerMate knob is rotated, pressed, or released.
 
@@ -122,7 +125,7 @@ The event argument is a `PowerMateInput` struct with the following fields.
 |`IsRotationClockwise`|`bool?`|`true` `false` `null`|`true` if the knob is being rotated clockwise when viewed from above, `false` if it is being rotated counterclockwise, or `null` if it is not being rotated.|
 |`RotationDistance`|`uint`|`0` `1` `2`|How far, in arbitrary angular units, the knob was rotated since the last update. When you rotate the knob slowly, you will receive multiple events, each with this set to `1`. As you rotate it faster, updates are batched and this number increases to `2` or more. The highest value I have seen is `8`. This is always non-negative, regardless of the rotation direction; use `IsRotationClockwise` to determine the direction. If the knob is pressed without being rotated, this is `0`.|
 
-### `IsConnectedChanged`
+### IsConnectedChanged
 
 Fired whenever the connection state of the PowerMate changes. Not fired when constructing or disposing the `PowerMateClient` instance.
 
@@ -130,9 +133,47 @@ The event argument is a `bool` which is `true` when a PowerMate has reconnected,
 
 To get the value of this state at any time, read the `IsConnected` property on the `IPowerMateClient` instance.
 
+## Demos
+
+### Simple demo
+
+This console program just prints out each event it receives from the PowerMate.
+
+- Windows: [x64](https://github.com/Aldaviva/PowerMate/releases/latest/download/Demo-x64.exe), [ARM64](https://github.com/Aldaviva/PowerMate/releases/latest/download/Demo-ARM64.exe)
+- MacOS: [x64](https://github.com/Aldaviva/PowerMate/releases/latest/download/Demo-x64), [ARM64](https://github.com/Aldaviva/PowerMate/releases/latest/download/Demo-ARM64)
+- [Source](https://github.com/Aldaviva/PowerMate/blob/master/Demo/Demo.cs)
+
+```text
+> Demo-x64.exe
+Listening for PowerMate events
+Received event from PowerMate: Turning clockwise 1 increment while not pressed
+Received event from PowerMate: Turning clockwise 1 increment while not pressed
+Received event from PowerMate: Turning clockwise 1 increment while not pressed
+^C
+```
+
+### Volume control
+
+- Windows: [x64](https://github.com/Aldaviva/PowerMate/releases/latest/download/PowerMateVolume.exe)
+- [Source](https://github.com/Aldaviva/PowerMate/blob/master/PowerMateVolume/PowerMateVolume.cs)
+
+This background program increases and decreases the output volume of the default Windows audio output device when you turn the PowerMate knob clockwise and counterclockwise. It also toggles the output mute when you press the knob.
+
+```cmd
+PowerMateVolume.exe
+```
+
+By default, it increments and decrements the volume by 1 percentage point for each rotation event. You can customize this amount by passing a different percentage as a command-line argument, such as ½ or 2 percentage points:
+
+```cmd
+PowerMateVolume.exe 0.005
+```
+```cmd
+PowerMateVolume.exe 0.02
+```
+
 ## Limitations
 - This library currently does not allow you to change the LED brightness.
-- This library does not connect to Bluetooth PowerMates.
 
 ## Acknowledgements
-- [**Luke Ma**](https://twitter.com/lukesma) for giving me a PowerMate as a Christmas gift in 2013
+- [![Luke Ma](https://pbs.twimg.com/profile_images/599239611584380928/g7DAnpuw_normal.jpg) **Luke Ma**](https://twitter.com/lukesma) for giving me a PowerMate as a Christmas gift in 2013
