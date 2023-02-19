@@ -6,28 +6,18 @@ namespace PowerMate;
 /// <inheritdoc />
 public class PowerMateClient: IPowerMateClient {
 
-    private const int PowerMateVendorId  = 0x077d;
-    private const int PowerMateProductId = 0x0410;
-    private const int MessageLength      = 7;
+    private const int  PowerMateVendorId    = 0x077d;
+    private const int  PowerMateProductId   = 0x0410;
+    private const int  MessageLength        = 7;
+    private const byte DefaultLedBrightness = 80;
 
     private readonly object _hidStreamLock = new();
 
     private DeviceList? _deviceList;
     private bool        _isConnected;
-
-    /// <inheritdoc />
-    public bool IsConnected {
-        get => _isConnected;
-        private set {
-            if (value != _isConnected) {
-                _isConnected = value;
-                EventSynchronizationContext.Post(_ => {
-                    IsConnectedChanged?.Invoke(this, value);
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsConnected)));
-                }, null);
-            }
-        }
-    }
+    private byte        _ledBrightness = DefaultLedBrightness;
+    private int?        _ledPulseSpeed;
+    private bool        _ledPulseDuringSleep;
 
     /// <inheritdoc />
     public event EventHandler<bool>? IsConnectedChanged;
@@ -61,6 +51,20 @@ public class PowerMateClient: IPowerMateClient {
         AttachToDevice();
     }
 
+    /// <inheritdoc />
+    public bool IsConnected {
+        get => _isConnected;
+        private set {
+            if (value != _isConnected) {
+                _isConnected = value;
+                EventSynchronizationContext.Post(_ => {
+                    IsConnectedChanged?.Invoke(this, value);
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsConnected)));
+                }, null);
+            }
+        }
+    }
+
     private void onDeviceListChanged(object? sender, DeviceListChangedEventArgs e) {
         AttachToDevice();
     }
@@ -87,6 +91,14 @@ public class PowerMateClient: IPowerMateClient {
             } catch (TaskCanceledException) { }
 
             IsConnected = true;
+
+            SetFeature(PowerMateFeature.LedPulseDuringSleepEnabled, Convert.ToByte(LedPulseDuringSleep));
+            SetFeature(PowerMateFeature.LedPulseAlwaysEnabled, Convert.ToByte(LedPulseSpeed != null));
+            if (LedPulseSpeed != null) {
+                SetFeature(PowerMateFeature.LedPulseSpeed, EncodePulseSpeed(LedPulseSpeed.Value));
+            } else {
+                SetFeature(PowerMateFeature.LedBrightness, LedBrightness);
+            }
         }
     }
 
@@ -128,6 +140,86 @@ public class PowerMateClient: IPowerMateClient {
         } catch (AggregateException) { }
 
         AttachToDevice();
+    }
+
+    /// <inheritdoc />
+    public byte LedBrightness {
+        get => _ledBrightness;
+        set {
+            if (IsConnected && LedPulseSpeed == null) {
+                SetFeature(PowerMateFeature.LedBrightness, value);
+            }
+
+            _ledBrightness = value;
+        }
+    }
+
+    /// <inheritdoc />
+    public int? LedPulseSpeed {
+        get => _ledPulseSpeed;
+        set {
+            int? newSpeed = value;
+            if (newSpeed.HasValue) {
+                newSpeed = Math.Max(0, Math.Min(24, newSpeed.Value));
+            }
+
+            if (IsConnected) {
+                if (newSpeed.HasValue != _ledPulseSpeed.HasValue) {
+                    SetFeature(PowerMateFeature.LedPulseAlwaysEnabled, Convert.ToByte(newSpeed.HasValue));
+                    if (!newSpeed.HasValue) {
+                        SetFeature(PowerMateFeature.LedBrightness, _ledBrightness);
+                    }
+                }
+
+                if (newSpeed.HasValue) {
+                    SetFeature(PowerMateFeature.LedPulseSpeed, EncodePulseSpeed(newSpeed.Value));
+                }
+            }
+
+            _ledPulseSpeed = newSpeed;
+        }
+    }
+
+    /// <inheritdoc />
+    public bool LedPulseDuringSleep {
+        get => _ledPulseDuringSleep;
+        set {
+            if (IsConnected) {
+                SetFeature(PowerMateFeature.LedPulseDuringSleepEnabled, Convert.ToByte(value));
+            }
+
+            _ledPulseDuringSleep = value;
+        }
+    }
+
+    /// <exception cref="ArgumentOutOfRangeException">if payload is more than 4 bytes long</exception>
+    // ExceptionAdjustment: M:System.Array.CopyTo(System.Array,System.Int32) -T:System.ArrayTypeMismatchException
+    // ExceptionAdjustment: M:System.Array.CopyTo(System.Array,System.Int32) -T:System.RankException
+    private void SetFeature(PowerMateFeature feature, params byte[] payload) {
+        if (payload.Length > 4) {
+            throw new ArgumentOutOfRangeException(nameof(payload), $"Payload must be 4 or fewer bytes long, got {payload.Length}");
+        }
+
+        byte[] featureData = { 0x00, 0x41, 0x01, (byte) feature, 0x00, /* payload copied here */ 0x00, 0x00, 0x00, 0x00 };
+        payload.CopyTo(featureData, 5);
+
+        _hidStream?.SetFeature(featureData);
+    }
+
+    internal static byte[] EncodePulseSpeed(int pulseSpeed) {
+        byte[] encoded = BitConverter.GetBytes((ushort) (pulseSpeed switch {
+            < 0   => 0xe,
+            <= 7  => (7 - pulseSpeed) * 2,
+            8     => 0x100,
+            <= 24 => (pulseSpeed - 8) * 2 + 0x200,
+            > 24  => 0x220
+        }));
+
+        if (BitConverter.IsLittleEndian) {
+            (encoded[0], encoded[1]) = (encoded[1], encoded[0]);
+        }
+
+        return encoded;
     }
 
     /// <summary>

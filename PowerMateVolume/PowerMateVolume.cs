@@ -8,6 +8,8 @@ if (!float.TryParse(Environment.GetCommandLineArgs().ElementAtOrDefault(1), out 
 using IPowerMateClient powerMateClient = new PowerMateClient();
 using VolumeChanger    volumeChanger   = new VolumeChangerImpl { volumeIncrement = volumeIncrement };
 
+powerMateClient.LedBrightness = 0;
+
 CancellationTokenSource cancellationTokenSource = new();
 Console.CancelKeyPress += (_, eventArgs) => {
     eventArgs.Cancel = true;

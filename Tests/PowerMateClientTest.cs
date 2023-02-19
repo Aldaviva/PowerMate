@@ -138,4 +138,45 @@ public class PowerMateClientTest {
         client.Dispose();
     }
 
+    [Theory]
+    [InlineData(-2, 0x00, 0x0e)]
+    [InlineData(-1, 0x00, 0x0e)]
+    [InlineData(0, 0x00, 0x0e)]
+    [InlineData(1, 0x00, 0x0c)]
+    [InlineData(2, 0x00, 0x0a)]
+    [InlineData(3, 0x00, 0x08)]
+    [InlineData(4, 0x00, 0x06)]
+    [InlineData(5, 0x00, 0x04)]
+    [InlineData(6, 0x00, 0x02)]
+    [InlineData(7, 0x00, 0x00)]
+    [InlineData(8, 0x01, 0x00)]
+    [InlineData(9, 0x02, 0x02)]
+    [InlineData(10, 0x02, 0x04)]
+    [InlineData(11, 0x02, 0x06)]
+    [InlineData(12, 0x02, 0x08)]
+    [InlineData(13, 0x02, 0x0a)]
+    [InlineData(14, 0x02, 0x0c)]
+    [InlineData(15, 0x02, 0x0e)]
+    [InlineData(16, 0x02, 0x10)]
+    [InlineData(17, 0x02, 0x12)]
+    [InlineData(18, 0x02, 0x14)]
+    [InlineData(19, 0x02, 0x16)]
+    [InlineData(20, 0x02, 0x18)]
+    [InlineData(21, 0x02, 0x1a)]
+    [InlineData(22, 0x02, 0x1c)]
+    [InlineData(23, 0x02, 0x1e)]
+    [InlineData(24, 0x02, 0x20)]
+    [InlineData(25, 0x02, 0x20)]
+    [InlineData(26, 0x02, 0x20)]
+    public void EncodePulseSpeed(int input, byte expectedLeftByte, byte expectedRightByte) {
+        byte[] actual = PowerMateClient.EncodePulseSpeed(input);
+        actual.Should().HaveCount(2);
+        if (!BitConverter.IsLittleEndian) {
+            (expectedLeftByte, expectedRightByte) = (expectedRightByte, expectedLeftByte);
+        }
+
+        actual[0].Should().Be(expectedLeftByte);
+        actual[1].Should().Be(expectedRightByte);
+    }
+
 }
