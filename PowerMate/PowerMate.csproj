@@ -6,7 +6,7 @@
         <Company>Ben Hutchison</Company>
         <PackageId>PowerMate</PackageId>
         <Product>PowerMate</Product>
-        <Description>Receive events from a Griffin PowerMate device over USB.</Description>
+        <Description>Receive events and control the light on a Griffin PowerMate USB device</Description>
         <Copyright>© 2023 Ben Hutchison</Copyright>
         <PackageProjectUrl>https://github.com/Aldaviva/PowerMate</PackageProjectUrl>
         <RepositoryUrl>https://github.com/Aldaviva/PowerMate.git</RepositoryUrl>
@@ -28,11 +28,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <None Remove="ExceptionAdjustments.txt" />
+        <None Remove="ExceptionAdjustments.txt" />
     </ItemGroup>
 
     <ItemGroup>
-      <AdditionalFiles Include="ExceptionAdjustments.txt" />
+        <AdditionalFiles Include="ExceptionAdjustments.txt" />
     </ItemGroup>
 
     <ItemGroup>

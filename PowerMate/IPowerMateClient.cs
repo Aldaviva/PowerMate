@@ -3,10 +3,11 @@
 namespace PowerMate;
 
 /// <summary>
-/// <para>Listen for events from a connected Griffin PowerMate.</para>
+/// <para>Listen for events and control the light on a connected Griffin PowerMate USB device.</para>
 /// <para>To get started, construct a new instance of <see cref="PowerMateClient"/>.</para>
 /// <para>Once you have constructed an instance, you can subscribe to <see cref="InputReceived"/> events to be notified when the PowerMate knob is rotated, pressed, or released.</para>
 /// <para>You can also subscribe to <see cref="IsConnectedChanged"/> or <see cref="INotifyPropertyChanged.PropertyChanged"/> to be notified when it connects or disconnects from a PowerMate.</para>
+/// <para>The light is controlled by the <see cref="LightBrightness"/>, <see cref="LightAnimation"/>, and <see cref="LightPulseSpeed"/> properties.</para>
 /// <para>Remember to dispose of this instance when you're done using it by calling <see cref="IDisposable.Dispose"/>, or with a <see langword="using" /> statement or declaration.</para>
 /// </summary>
 public interface IPowerMateClient: IDisposable, INotifyPropertyChanged {

@@ -3,7 +3,7 @@ PowerMate
 
 [![Nuget](https://img.shields.io/nuget/v/PowerMate?logo=nuget)](https://www.nuget.org/packages/PowerMate/) [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/Aldaviva/PowerMate/dotnetpackage.yml?branch=master&logo=github)](https://github.com/Aldaviva/PowerMate/actions/workflows/dotnetpackage.yml) [![Testspace](https://img.shields.io/testspace/tests/Aldaviva/Aldaviva:PowerMate/master?passed_label=passing&failed_label=failing&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4NTkgODYxIj48cGF0aCBkPSJtNTk4IDUxMy05NCA5NCAyOCAyNyA5NC05NC0yOC0yN3pNMzA2IDIyNmwtOTQgOTQgMjggMjggOTQtOTQtMjgtMjh6bS00NiAyODctMjcgMjcgOTQgOTQgMjctMjctOTQtOTR6bTI5My0yODctMjcgMjggOTQgOTQgMjctMjgtOTQtOTR6TTQzMiA4NjFjNDEuMzMgMCA3Ni44My0xNC42NyAxMDYuNS00NFM1ODMgNzUyIDU4MyA3MTBjMC00MS4zMy0xNC44My03Ni44My00NC41LTEwNi41UzQ3My4zMyA1NTkgNDMyIDU1OWMtNDIgMC03Ny42NyAxNC44My0xMDcgNDQuNXMtNDQgNjUuMTctNDQgMTA2LjVjMCA0MiAxNC42NyA3Ny42NyA0NCAxMDdzNjUgNDQgMTA3IDQ0em0wLTU1OWM0MS4zMyAwIDc2LjgzLTE0LjgzIDEwNi41LTQ0LjVTNTgzIDE5Mi4zMyA1ODMgMTUxYzAtNDItMTQuODMtNzcuNjctNDQuNS0xMDdTNDczLjMzIDAgNDMyIDBjLTQyIDAtNzcuNjcgMTQuNjctMTA3IDQ0cy00NCA2NS00NCAxMDdjMCA0MS4zMyAxNC42NyA3Ni44MyA0NCAxMDYuNVMzOTAgMzAyIDQzMiAzMDJ6bTI3NiAyODJjNDIgMCA3Ny42Ny0xNC44MyAxMDctNDQuNXM0NC02NS4xNyA0NC0xMDYuNWMwLTQyLTE0LjY3LTc3LjY3LTQ0LTEwN3MtNjUtNDQtMTA3LTQ0Yy00MS4zMyAwLTc2LjY3IDE0LjY3LTEwNiA0NHMtNDQgNjUtNDQgMTA3YzAgNDEuMzMgMTQuNjcgNzYuODMgNDQgMTA2LjVTNjY2LjY3IDU4NCA3MDggNTg0em0tNTU3IDBjNDIgMCA3Ny42Ny0xNC44MyAxMDctNDQuNXM0NC02NS4xNyA0NC0xMDYuNWMwLTQyLTE0LjY3LTc3LjY3LTQ0LTEwN3MtNjUtNDQtMTA3LTQ0Yy00MS4zMyAwLTc2LjgzIDE0LjY3LTEwNi41IDQ0UzAgMzkxIDAgNDMzYzAgNDEuMzMgMTQuODMgNzYuODMgNDQuNSAxMDYuNVMxMDkuNjcgNTg0IDE1MSA1ODR6IiBmaWxsPSIjZmZmIi8%2BPC9zdmc%2B)](https://aldaviva.testspace.com/spaces/204917) [![Coveralls](https://img.shields.io/coveralls/github/Aldaviva/PowerMate?logo=coveralls)](https://coveralls.io/github/Aldaviva/PowerMate?branch=master)
 
-*Receive events from a Griffin PowerMate device over USB*
+*Receive events and control the light on a Griffin PowerMate USB device*
 
 <!-- MarkdownTOC autolink="true" bracket="round" autoanchor="false" levels="1,2,3" bullets="1.,-,-,-" -->
 
@@ -22,7 +22,6 @@ PowerMate
 1. [Demos](#demos)
     - [Simple demo](#simple-demo)
     - [Volume control](#volume-control)
-1. [Limitations](#limitations)
 1. [Acknowledgements](#acknowledgements)
 
 <!-- /MarkdownTOC -->
@@ -39,16 +38,18 @@ using PowerMate;
 
 using IPowerMateClient powerMate = new PowerMateClient();
 
-powerMate.InputReceived += (sender, input) => {
+powerMate.LightBrightness = 255;
+
+powerMate.InputReceived += (_, input) => {
     switch (input) {
         case { IsPressed: true, RotationDirection: RotationDirection.None }:
             Console.WriteLine("PowerMate was pressed");
             break;
-        case { IsPressed: false, RotationDirection: RotationDirection.Clockwise }:
-            Console.WriteLine("PowerMate was rotated clockwise");
+        case { RotationDirection: RotationDirection.Clockwise }:
+            Console.WriteLine($"PowerMate was rotated clockwise {input.RotationDistance:N0} increment(s)");
             break;
-        case { IsPressed: false, RotationDirection: RotationDirection.Counterclockwise }:
-            Console.WriteLine("PowerMate was rotated counterclockwise");
+        case { RotationDirection: RotationDirection.Counterclockwise }:
+            Console.WriteLine($"PowerMate was rotated counterclockwise {input.RotationDistance:N0} increment(s)");
             break;
         default:
             break;
@@ -94,7 +95,7 @@ You can install this library into your project from [NuGet Gallery](https://www.
 1. Now you can **listen for [`InputReceived`](#inputreceived-event) events** from the client.
 
     ```cs
-    powerMate.InputReceived += (sender, input) => Console.WriteLine($"Received PowerMate event: {input}");
+    powerMate.InputReceived += (_, input) => Console.WriteLine($"Received PowerMate event: {input}");
     ```
 
 ### Connections
@@ -122,7 +123,7 @@ powerMate.IsConnectedChanged += (_, isConnected) => Console.WriteLine(isConnecte
 Fired whenever the PowerMate knob is rotated, pressed, or released.
 
 ```cs
-powerMate.InputReceived += (sender, input) => Console.WriteLine($"Received PowerMate event: {input}");
+powerMate.InputReceived += (_, input) => Console.WriteLine($"Received PowerMate event: {input}");
 ```
 
 The event argument is a `PowerMateInput` struct with the following fields.
@@ -157,13 +158,15 @@ A writable `byte` property with valid values in the range [0, 255]. `0` represen
 
 The default value is `80`, which matches the brightness the device uses when no program has instructed it to change its brightness since it has been plugged in.
 
-Changes to `LedBrightness` will not take effect while the LED is pulsing with a [`LightAnimation`](#lightanimation-property) of `Pulsing`.
+Changes to `LightBrightness` will not take effect while the LED is pulsing with a [`LightAnimation`](#lightanimation-property) of `Pulsing`.
 
 ```cs
 powerMate.LightBrightness = 0;
+powerMate.LightAnimation = LightAnimation.Solid;
 ```
 ```cs
 powerMate.LightBrightness = 255;
+powerMate.LightAnimation = LightAnimation.Solid;
 ```
 
 ### `LightAnimation` property
@@ -174,6 +177,11 @@ A writable `enum` property that controls how the light is animated. Available va
 - **`Pulsing`** — the light raises and lowers its brightness to the highest and lowest levels in a cyclical animation, with the frequency controlled by [`LightPulseSpeed`](#lightpulsespeed-property)
 - **`SolidWhileAwakeAndPulsingDuringComputerStandby`** — while the computer to which the device is connected is awake, the light shines at a constant brightness (controlled by [`LightBrightness`](#lightbrightness-property)), but while the computer is asleep, the light displays the pulsing animation (with the frequency controlled by [`LightPulseSpeed`](#lightpulsespeed-property))
 
+```cs
+powerMate.LightPulseSpeed = 12;
+powerMate.LightAnimation = LightAnimation.Pulsing;
+```
+
 ### `LightPulseSpeed` property
 
 A writable `int` property with valid values in the range [0, 24]. Values outside that range are clamped. The default value is `12`.
@@ -181,7 +189,8 @@ A writable `int` property with valid values in the range [0, 24]. Values outside
 This property controls how fast the light pulses when [`LightAnimation`](#lightanimation-property) is set to `Pulsing` or `SolidWhileAwakeAndPulsingDuringComputerStandby`. The slowest pulse speed, `0`, is about 0.03443 Hz, or a 29.04 sec period. The fastest pulse speed, `24`, is about 15.63 Hz, or a 64 ms period.
 
 ```cs
-powerMate.LedPulseSpeed = 12;
+powerMate.LightPulseSpeed = 12;
+powerMate.LightAnimation = LightAnimation.Pulsing;
 ```
 
 ## Demos
@@ -223,8 +232,5 @@ PowerMateVolume.exe 0.005
 PowerMateVolume.exe 0.02
 ```
 
-## Limitations
-- This library currently does not allow you to change the LED brightness.
-
 ## Acknowledgements
-- [![Luke Ma](https://pbs.twimg.com/profile_images/599239611584380928/g7DAnpuw_normal.jpg) **Luke Ma**](https://twitter.com/lukesma) for giving me a PowerMate as a Christmas gift in 2013
+[![Luke Ma](https://pbs.twimg.com/profile_images/599239611584380928/g7DAnpuw_normal.jpg) **Luke Ma**](https://twitter.com/lukesma) for giving me a PowerMate as a Christmas gift in 2013. Thanks Luke!

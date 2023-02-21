@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using HidSharp;
 
 namespace PowerMate;
@@ -17,8 +18,8 @@ public class PowerMateClient: IPowerMateClient {
     private bool                     _isConnected;
     private HidStream?               _hidStream;
     private byte                     _lightBrightness = DefaultLightBrightness;
-    private int                      _lightPulseSpeed = 12;
     private LightAnimation           _lightAnimation  = LightAnimation.Solid;
+    private int                      _lightPulseSpeed = 12;
 
     /// <inheritdoc />
     public event EventHandler<bool>? IsConnectedChanged;
@@ -39,6 +40,7 @@ public class PowerMateClient: IPowerMateClient {
     /// <para>If multiple PowerMate devices are present, it will pick one arbitrarily and connect to it.</para>
     /// <para>Once you have constructed an instance, you can subscribe to <see cref="InputReceived"/> events to be notified when the PowerMate knob is rotated, pressed, or released.</para>
     /// <para>You can also subscribe to <see cref="IsConnectedChanged"/> or <see cref="INotifyPropertyChanged.PropertyChanged"/> to be notified when it connects or disconnects from a PowerMate.</para>
+    /// <para>The light is controlled by the <see cref="LightBrightness"/>, <see cref="LightAnimation"/>, and <see cref="LightPulseSpeed"/> properties.</para>
     /// <para>Remember to dispose of this instance when you're done using it by calling <see cref="Dispose()"/>, or with a <see langword="using" /> statement or declaration.</para>
     /// </summary>
     public PowerMateClient(): this(DeviceList.Local) { }
@@ -89,14 +91,6 @@ public class PowerMateClient: IPowerMateClient {
             try {
                 Task.Factory.StartNew(HidReadLoop, _cancellationTokenSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
             } catch (TaskCanceledException) { }
-
-            //SetFeature(PowerMateFeature.LightPulseDuringSleepEnabled, Convert.ToByte(LightPulseMode == LightPulseMode.DuringComputerStandbyOnly));
-            //SetFeature(PowerMateFeature.LightPulseAlwaysEnabled, Convert.ToByte(LightPulseMode == LightPulseMode.Enabled));
-            //if (LightPulseMode != LightPulseMode.Disabled) {
-            //    SetFeature(PowerMateFeature.LightPulseSpeed, EncodePulseSpeed(LightPulseSpeed));
-            //} else {
-            //    SetFeature(PowerMateFeature.LightBrightness, LightBrightness);
-            //}
         }
     }
 
@@ -148,7 +142,10 @@ public class PowerMateClient: IPowerMateClient {
                 SetFeature(PowerMateFeature.LightBrightness, value);
             }
 
-            _lightBrightness = value;
+            if (_lightBrightness != value) {
+                _lightBrightness = value;
+                TriggerPropertyChangedEvent();
+            }
         }
     }
 
@@ -169,7 +166,10 @@ public class PowerMateClient: IPowerMateClient {
                 }
             }
 
-            _lightAnimation = value;
+            if (_lightAnimation != value) {
+                _lightAnimation = value;
+                TriggerPropertyChangedEvent();
+            }
         }
     }
 
@@ -183,31 +183,27 @@ public class PowerMateClient: IPowerMateClient {
                 SetFeature(PowerMateFeature.LightPulseSpeed, EncodePulseSpeed(value));
             }
 
-            _lightPulseSpeed = value;
+            if (LightPulseSpeed != value) {
+                _lightPulseSpeed = value;
+                TriggerPropertyChangedEvent();
+            }
         }
     }
 
-    /// <exception cref="ArgumentOutOfRangeException">if payload is more than 4 bytes long</exception>
-    // ExceptionAdjustment: M:System.Array.CopyTo(System.Array,System.Int32) -T:System.ArrayTypeMismatchException
-    // ExceptionAdjustment: M:System.Array.CopyTo(System.Array,System.Int32) -T:System.RankException
+    // ExceptionAdjustment: M:System.Array.Copy(System.Array,System.Int32,System.Array,System.Int32,System.Int32) -T:System.RankException
+    // ExceptionAdjustment: M:System.Array.Copy(System.Array,System.Int32,System.Array,System.Int32,System.Int32) -T:System.ArrayTypeMismatchException
     private void SetFeature(PowerMateFeature feature, params byte[] payload) {
-        if (payload.Length > 4) {
-            throw new ArgumentOutOfRangeException(nameof(payload), $"Payload must be 4 or fewer bytes long, got {payload.Length}");
-        }
-
         byte[] featureData = { 0x00, 0x41, 0x01, (byte) feature, 0x00, /* payload copied here */ 0x00, 0x00, 0x00, 0x00 };
-        payload.CopyTo(featureData, 5);
+        Array.Copy(payload, 0, featureData, 5, Math.Min(payload.Length, 4));
 
         _hidStream?.SetFeature(featureData);
     }
 
-    internal static byte[] EncodePulseSpeed(int pulseSpeed) {
+    private static byte[] EncodePulseSpeed(int pulseSpeed) {
         byte[] encoded = BitConverter.GetBytes((ushort) (pulseSpeed switch {
-            < 0   => 0xe,
-            <= 7  => (7 - pulseSpeed) * 2,
-            8     => 0x100,
-            <= 24 => (pulseSpeed - 8) * 2 + 0x200,
-            > 24  => 0x220
+            < 8 => Math.Min(0x00e, (7 - pulseSpeed) * 2),
+            8   => 0x100,
+            > 8 => Math.Min(0x220, (pulseSpeed - 8) * 2 + 0x200)
         }));
 
         if (BitConverter.IsLittleEndian) {
@@ -215,6 +211,10 @@ public class PowerMateClient: IPowerMateClient {
         }
 
         return encoded;
+    }
+
+    private void TriggerPropertyChangedEvent([CallerMemberName] string propertyName = "") {
+        EventSynchronizationContext.Post(_ => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)), null);
     }
 
     /// <summary>
