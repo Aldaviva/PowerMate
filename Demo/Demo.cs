@@ -2,7 +2,7 @@
 
 using IPowerMateClient powerMate = new PowerMateClient();
 
-powerMate.LedBrightness = 255;
+powerMate.LightBrightness = 255;
 
 powerMate.IsConnectedChanged += (_, isConnected) => Console.WriteLine(isConnected ? "Connected to PowerMate" : "Disconnected from PowerMate, attempting reconnection");
 

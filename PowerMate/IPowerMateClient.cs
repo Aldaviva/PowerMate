@@ -24,7 +24,7 @@ public interface IPowerMateClient: IDisposable, INotifyPropertyChanged {
     /// <summary>
     /// Fired whenever the PowerMate knob is rotated, pressed, or released.
     /// </summary>
-    event EventHandler<PowerMateInput>? InputReceived;
+    event EventHandler<PowerMateInput> InputReceived;
 
     /// <summary>
     /// <para>Fired whenever the connection state of the PowerMate changes. Not fired when constructing or disposing the <see cref="PowerMateClient"/> instance.</para>
@@ -33,7 +33,7 @@ public interface IPowerMateClient: IDisposable, INotifyPropertyChanged {
     /// <para>If you want to use data binding which expects <see cref="INotifyPropertyChanged.PropertyChanged"/> events, <see cref="IPowerMateClient"/> also implements
     /// <see cref="INotifyPropertyChanged"/>, so you can use that event instead.</para>
     /// </summary>
-    event EventHandler<bool>? IsConnectedChanged;
+    event EventHandler<bool> IsConnectedChanged;
 
     /// <summary>
     /// <see cref="SynchronizationContext"/> on which to run event callbacks. Useful if your delegates need to update a user interface on the main thread. Callbacks run on the current thread by
@@ -42,25 +42,38 @@ public interface IPowerMateClient: IDisposable, INotifyPropertyChanged {
     SynchronizationContext EventSynchronizationContext { get; set; }
 
     /// <summary>
-    /// <para>Get or set how bright the blue/cyan LED in the base of the PowerMate is, between <c>0</c> (off) and <c>255</c> (brightest), inclusive. When the device is first plugged in, it defaults to <c>80</c>.</para>
-    /// <para>This property does not reflect brightness changes by other programs.</para>
-    /// <para>It is safe to set this property even if a device is not connected. If you do, the brightness value will be saved until the device reconnects, when your value will be automatically reapplied to the device.</para>
-    /// <para>Changes to this property will not take effect while the LED is pulsing (i.e. while <see cref="LedPulseSpeed"/> is non-null). If you try to set a brightness while it's pulsing, the LED will continue pulsing until you set <see cref="LedPulseSpeed"/> to <see langword="null"/>, at which point the brightness value you tried to set earlier will take effect.</para>
+    /// <para>Get or set how bright the blue/cyan LED in the base of the PowerMate is, between <c>0</c> (off) and <c>255</c> (brightest), inclusive. When the device is first plugged in, it defaults to
+    /// <c>80</c>.</para>
+    /// <para>This property does not reflect brightness changes made to the device by other programs running on your computer.</para>
+    /// <para>It is safe to set this property even if a device is not connected. If you do, the brightness value will be saved until the device reconnects, when your value will be automatically
+    /// reapplied to the device.</para>
+    /// <para>Changes to this property will not take effect while the LED is pulsing (i.e. while <see cref="LightAnimation"/> is <see cref="PowerMate.LightAnimation.Pulsing"/>). If you try to set a brightness while it's pulsing, the LED
+    /// will continue pulsing until you set <see cref="LightAnimation"/> to <see cref="PowerMate.LightAnimation.Solid"/> or <see cref="PowerMate.LightAnimation.SolidWhileAwakeAndPulsingDuringComputerStandby"/>, at which point the brightness value you tried to set earlier will take effect.</para>
     /// <para>Warning: changing this property very frequently can result in HID errors, so consider throttling your writes.</para>
     /// </summary>
-    byte LedBrightness { get; set; }
+    byte LightBrightness { get; set; }
 
     /// <summary>
-    /// <para>Get or set how fast, if at all, the blue/cyan LED in the base of the PowerMate is flashing, between <c>0</c> (slowest, about 0.03443 Hz, a 29.04 sec period) and <c>24</c> (fastest, about 15.63 Hz, or a 64 ms period), inclusive. You can also set it to <see langword="null"/> to disable pulsing, in which case it will shine at the constant <see cref="LedBrightness"/> level. Values you set are clamped to the range <c>[0, 24]</c>.</para>
-    /// <para>This property does not reflect pulsing changes by other programs.</para>
-    /// <para>It is safe to set this property even if a device is not connected. If you do, the pulsing speed value will be saved until the device reconnects, when your value will be automatically reapplied to the device.</para>
+    /// <para>Enables or disables a pulsing animation of the blue/cyan LED in the base of the PowerMate.</para>
+    /// <para>By default, this is <see cref="PowerMate.LightAnimation.Solid"/>, and the light shines at a constant brightness controlled by <see cref="LightBrightness"/>.</para>
+    /// <para>To enable the pulsing animation, set this to <see cref="PowerMate.LightAnimation.Pulsing"/>, and set <see cref="LightPulseSpeed"/> to control the frequency.</para>
+    /// <para>By setting this to <see cref="PowerMate.LightAnimation.SolidWhileAwakeAndPulsingDuringComputerStandby"/>, you can set the light to shine at a constant brightness while the computer which the device is attached to is awake, but change to a pulsing animation when the computer goes to sleep.</para>
+    /// <para>This property does not reflect animation changes made to the device by other programs running on your computer.</para>
+    /// <para>It is safe to set this property even if a device is not connected. If you do, the animation will be saved until the device reconnects, when your value will be automatically
+    /// reapplied to the device.</para>
     /// </summary>
-    int? LedPulseSpeed { get; set; }
+    LightAnimation LightAnimation { get; set; }
 
     /// <summary>
-    /// <para><see langword="true"/> if the blue/cyan LED in the base of the PowerMate should pulse when it is attached to a computer which is in a standby power state, or <see langword="false"/> if the LED should turn off instead. Defaults to <see langword="false"/>.</para>
-    /// <para>When set to <see langword="true"/>, the pulse speed is the same as that set by <see cref="LedPulseSpeed"/>. To change the sleep pulse speed but not pulse while awake, set <see cref="LedPulseDuringSleep"/> to <see langword="true"/>, then set the desired sleeping pulse speed with <see cref="LedPulseSpeed"/>, adn finally set <see cref="LedPulseSpeed"/> to <see langword="null"/>. This will store the pulse speed to be used during sleep in the device, and also keep a constant brightness while the computer is awake.</para>
+    /// <para>Get or set how fast, if at all, the blue/cyan LED in the base of the PowerMate is flashing, between <c>0</c> (slowest, about 0.03443 Hz, a 29.04 sec period) and <c>24</c> (fastest, about
+    /// 15.63 Hz, or a 64 ms period), inclusive. The default value is <c>12</c>. Values you set are clamped to the range [0, 24].</para>
+    /// <par>To disable pulsing, set <see cref="LightAnimation"/> to <see cref="PowerMate.LightAnimation.Solid"/>, in which case the light will shine at the constant
+    /// <see cref="LightBrightness"/> level.</par>
+    /// <para>Changes to this property will not take effect while the LED is solid (i.e. while <see cref="LightAnimation"/> is <see cref="PowerMate.LightAnimation.Solid"/> or <see cref="PowerMate.LightAnimation.SolidWhileAwakeAndPulsingDuringComputerStandby"/>). If you try to set a pulse speed while it's solid, the LED will continue solidly shining until you set <see cref="LightAnimation"/> to <see cref="PowerMate.LightAnimation.Solid"/> or <see cref="PowerMate.LightAnimation.SolidWhileAwakeAndPulsingDuringComputerStandby"/>, at which point the pulse speed you tried to set earlier will take effect.</para>
+    /// <para>This property does not reflect pulsing speed changes made to the device by other programs running on your computer.</para>
+    /// <para>It is safe to set this property even if a device is not connected. If you do, the pulsing speed value will be saved until the device reconnects, when your value will be automatically
+    /// reapplied to the device.</para>
     /// </summary>
-    bool LedPulseDuringSleep { get; set; }
+    int LightPulseSpeed { get; set; }
 
 }

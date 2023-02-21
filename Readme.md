@@ -15,10 +15,10 @@ PowerMate
 1. [Notifications](#notifications)
     - [`InputReceived` event](#inputreceived-event)
     - [`IsConnectedChanged` event](#isconnectedchanged-event)
-1. [LED Control](#led-control)
-    - [`LedBrightness` property](#ledbrightness-property)
-    - [`LedPulseSpeed` property](#ledpulsespeed-property)
-    - [`LedPulseDuringSleep` property](#ledpulseduringsleep-property)
+1. [Light Control](#light-control)
+    - [`LightBrightness` property](#lightbrightness-property)
+    - [`LightAnimation` property](#lightanimation-property)
+    - [`LightPulseSpeed` property](#lightpulsespeed-property)
 1. [Demos](#demos)
     - [Simple demo](#simple-demo)
     - [Volume control](#volume-control)
@@ -41,13 +41,13 @@ using IPowerMateClient powerMate = new PowerMateClient();
 
 powerMate.InputReceived += (sender, input) => {
     switch (input) {
-        case { IsPressed: true, IsRotationClockwise: null }:
+        case { IsPressed: true, RotationDirection: RotationDirection.None }:
             Console.WriteLine("PowerMate was pressed");
             break;
-        case { IsPressed: false, IsRotationClockwise: true }:
+        case { IsPressed: false, RotationDirection: RotationDirection.Clockwise }:
             Console.WriteLine("PowerMate was rotated clockwise");
             break;
-        case { IsPressed: false, IsRotationClockwise: false }:
+        case { IsPressed: false, RotationDirection: RotationDirection.Counterclockwise }:
             Console.WriteLine("PowerMate was rotated counterclockwise");
             break;
         default:
@@ -91,7 +91,7 @@ You can install this library into your project from [NuGet Gallery](https://www.
 
     You should dispose of instances when you're done with them by calling `Dispose()`, or with a `using` statement or declaration.
 
-1. Now you can **listen for [`InputReceived`](#inputreceived) events** from the client.
+1. Now you can **listen for [`InputReceived`](#inputreceived-event) events** from the client.
 
     ```cs
     powerMate.InputReceived += (sender, input) => Console.WriteLine($"Received PowerMate event: {input}");
@@ -103,7 +103,7 @@ This library will automatically try to connect to one of the PowerMate devices t
 
 If multiple PowerMate devices are present simultaneously, this library will pick one of them arbitrarily and use it until it disconnects.
 
-The connection state is exposed by the `bool IsConnected` property, and changes to this state are emitted by the [`IsConnectedChanged`](#isconnectedchanged) event.
+The connection state is exposed by the **`bool IsConnected`** property, and changes to this state are emitted by the [`IsConnectedChanged`](#isconnectedchanged-event) event.
 
 ```cs
 Console.WriteLine(powerMate.IsConnected 
@@ -130,8 +130,8 @@ The event argument is a `PowerMateInput` struct with the following fields.
 |Field name|Type|Example values|Description|
 |-|-|-|-|
 |`IsPressed`|`bool`|`true` `false`|`true` if the knob is being held down, or `false` if it is up. Pressing and releasing the knob will generate two events, with `true` and `false` in order. Will also be `true` when the knob is rotated while being held down.|
-|`IsRotationClockwise`|`bool?`|`true` `false` `null`|`true` if the knob is being rotated clockwise when viewed from above, `false` if it is being rotated counterclockwise, or `null` if it is not being rotated.|
-|`RotationDistance`|`uint`|`0` `1` `2`|How far, in arbitrary angular units, the knob was rotated since the last update. When you rotate the knob slowly, you will receive multiple events, each with this set to `1`. As you rotate it faster, updates are batched and this number increases to `2` or more. The highest value I have seen is `8`. This is always non-negative, regardless of the rotation direction; use `IsRotationClockwise` to determine the direction. If the knob is pressed without being rotated, this is `0`.|
+|`RotationDirection`|`enum`|`None` `Clockwise` `Counterclockwise`|The direction the knob is being rotated when viewed from above, or `None` if it is not being rotated.|
+|`RotationDistance`|`uint`|`0` `1` `2`|How far, in arbitrary angular units, the knob was rotated since the last update. When you rotate the knob slowly, you will receive multiple events, each with this set to `1`. As you rotate it faster, updates are batched and this number increases to `2` or more. The highest value I have seen is `8`. This is always non-negative, regardless of the rotation direction; use `RotationDirection` to determine the direction. If the knob is pressed without being rotated, this is `0`.|
 
 ### `IsConnectedChanged` event
 
@@ -147,47 +147,41 @@ powerMate.IsConnectedChanged += (_, isConnected) => Console.WriteLine(isConnecte
     : "Disconnected from the PowerMate, attempting reconnection...");
 ```
 
-## LED Control
+## Light Control
 
 By default, the blue/cyan LED in the base of the PowerMate lights up when it's plugged in. You can change the intensity of the light, make it pulse at different frequencies, or turn it off entirely by setting the following properties. The values that you set are retained across reconnections.
 
-### `LedBrightness` property
+### `LightBrightness` property
 
 A writable `byte` property with valid values in the range [0, 255]. `0` represents off, and `255` is the brightest.
 
 The default value is `80`, which matches the brightness the device uses when no program has instructed it to change its brightness since it has been plugged in.
 
-Changes to `LedBrightness` will not take effect while the LED is pulsing with a non-null `LedPulseSpeed`.
+Changes to `LedBrightness` will not take effect while the LED is pulsing with a [`LightAnimation`](#lightanimation-property) of `Pulsing`.
 
 ```cs
-powerMate.LedBrightness = 0;
+powerMate.LightBrightness = 0;
 ```
 ```cs
-powerMate.LedBrightness = 255;
+powerMate.LightBrightness = 255;
 ```
 
-### `LedPulseSpeed` property
+### `LightAnimation` property
 
-A writable nullable `int` property with valid values in the range [0, 24]. Values outside that range are clamped. The default value is `null`, which represents no pulsing. The slowest pulse speed, `0`, is about 0.03443 Hz, or a 29.04 sec period. The fastest pulse speed, `24`, is about 15.63 Hz, or a 64 ms period.
+A writable `enum` property that controls how the light is animated. Available values are
 
-This speed also affects pulsing while the computer is asleep, which can be enabled with `LedPulseDuringSleep`.
+- **`Solid`** *(default)* — the light shines at a constant brightness, controlled by [`LightBrightness`](#lightbrightness-property)
+- **`Pulsing`** — the light raises and lowers its brightness to the highest and lowest levels in a cyclical animation, with the frequency controlled by [`LightPulseSpeed`](#lightpulsespeed-property)
+- **`SolidWhileAwakeAndPulsingDuringComputerStandby`** — while the computer to which the device is connected is awake, the light shines at a constant brightness (controlled by [`LightBrightness`](#lightbrightness-property)), but while the computer is asleep, the light displays the pulsing animation (with the frequency controlled by [`LightPulseSpeed`](#lightpulsespeed-property))
 
-```cs
-powerMate.LedPulseSpeed = null;
-```
+### `LightPulseSpeed` property
+
+A writable `int` property with valid values in the range [0, 24]. Values outside that range are clamped. The default value is `12`.
+
+This property controls how fast the light pulses when [`LightAnimation`](#lightanimation-property) is set to `Pulsing` or `SolidWhileAwakeAndPulsingDuringComputerStandby`. The slowest pulse speed, `0`, is about 0.03443 Hz, or a 29.04 sec period. The fastest pulse speed, `24`, is about 15.63 Hz, or a 64 ms period.
+
 ```cs
 powerMate.LedPulseSpeed = 12;
-```
-
-### `LedPulseDuringSleep` property
-
-A writable `bool` property that defaults to `false`, which means the LED should have the same pulsing behavior when the computer is sleeping as when it is awake. If you set it to `true`, the LED will pulse at the frequency most recently set by `LedPulseSpeed` when the computer goes to sleep. 
-
-```cs
-powerMate.LedPulseDuringSleep = false;
-```
-```cs
-powerMate.LedPulseDuringSleep = true;
 ```
 
 ## Demos

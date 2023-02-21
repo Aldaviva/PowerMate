@@ -2,9 +2,9 @@
 
 internal enum PowerMateFeature: byte {
 
-    LedBrightness              = 1,
-    LedPulseDuringSleepEnabled = 2,
-    LedPulseAlwaysEnabled      = 3,
-    LedPulseSpeed              = 4
+    LightBrightness              = 1,
+    LightPulseDuringSleepEnabled = 2,
+    LightPulseAlwaysEnabled      = 3,
+    LightPulseSpeed              = 4
 
 }

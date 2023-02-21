@@ -6,18 +6,19 @@ namespace PowerMate;
 /// <inheritdoc />
 public class PowerMateClient: IPowerMateClient {
 
-    private const int  PowerMateVendorId    = 0x077d;
-    private const int  PowerMateProductId   = 0x0410;
-    private const int  MessageLength        = 7;
-    private const byte DefaultLedBrightness = 80;
+    private const int  PowerMateVendorId      = 0x077d;
+    private const int  PowerMateProductId     = 0x0410;
+    private const byte DefaultLightBrightness = 80;
 
     private readonly object _hidStreamLock = new();
 
-    private DeviceList? _deviceList;
-    private bool        _isConnected;
-    private byte        _ledBrightness = DefaultLedBrightness;
-    private int?        _ledPulseSpeed;
-    private bool        _ledPulseDuringSleep;
+    private DeviceList?              _deviceList;
+    private CancellationTokenSource? _cancellationTokenSource;
+    private bool                     _isConnected;
+    private HidStream?               _hidStream;
+    private byte                     _lightBrightness = DefaultLightBrightness;
+    private int                      _lightPulseSpeed = 12;
+    private LightAnimation           _lightAnimation  = LightAnimation.Solid;
 
     /// <inheritdoc />
     public event EventHandler<bool>? IsConnectedChanged;
@@ -30,9 +31,6 @@ public class PowerMateClient: IPowerMateClient {
 
     /// <inheritdoc />
     public SynchronizationContext EventSynchronizationContext { get; set; } = SynchronizationContext.Current ?? new SynchronizationContext();
-
-    private CancellationTokenSource? _cancellationTokenSource;
-    private HidStream?               _hidStream;
 
     /// <summary>
     /// <para>Constructs a new instance that communicates with a PowerMate device.</para>
@@ -85,20 +83,20 @@ public class PowerMateClient: IPowerMateClient {
             _hidStream.Closed        += ReattachToDevice;
             _hidStream.ReadTimeout   =  Timeout.Infinite;
             _cancellationTokenSource =  new CancellationTokenSource();
+            LightAnimation           =  LightAnimation; //resend all pulsing and brightness values to device
+            IsConnected              =  true;
 
             try {
                 Task.Factory.StartNew(HidReadLoop, _cancellationTokenSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
             } catch (TaskCanceledException) { }
 
-            IsConnected = true;
-
-            SetFeature(PowerMateFeature.LedPulseDuringSleepEnabled, Convert.ToByte(LedPulseDuringSleep));
-            SetFeature(PowerMateFeature.LedPulseAlwaysEnabled, Convert.ToByte(LedPulseSpeed != null));
-            if (LedPulseSpeed != null) {
-                SetFeature(PowerMateFeature.LedPulseSpeed, EncodePulseSpeed(LedPulseSpeed.Value));
-            } else {
-                SetFeature(PowerMateFeature.LedBrightness, LedBrightness);
-            }
+            //SetFeature(PowerMateFeature.LightPulseDuringSleepEnabled, Convert.ToByte(LightPulseMode == LightPulseMode.DuringComputerStandbyOnly));
+            //SetFeature(PowerMateFeature.LightPulseAlwaysEnabled, Convert.ToByte(LightPulseMode == LightPulseMode.Enabled));
+            //if (LightPulseMode != LightPulseMode.Disabled) {
+            //    SetFeature(PowerMateFeature.LightPulseSpeed, EncodePulseSpeed(LightPulseSpeed));
+            //} else {
+            //    SetFeature(PowerMateFeature.LightBrightness, LightBrightness);
+            //}
         }
     }
 
@@ -106,7 +104,7 @@ public class PowerMateClient: IPowerMateClient {
         CancellationToken cancellationToken = _cancellationTokenSource!.Token;
 
         try {
-            byte[] readBuffer = new byte[MessageLength];
+            byte[] readBuffer = new byte[7];
             while (!cancellationToken.IsCancellationRequested) {
                 int readBytes = await _hidStream!.ReadAsync(readBuffer, 0, readBuffer.Length, cancellationToken);
                 if (readBuffer.Length == readBytes) {
@@ -143,52 +141,49 @@ public class PowerMateClient: IPowerMateClient {
     }
 
     /// <inheritdoc />
-    public byte LedBrightness {
-        get => _ledBrightness;
+    public byte LightBrightness {
+        get => _lightBrightness;
         set {
-            if (IsConnected && LedPulseSpeed == null) {
-                SetFeature(PowerMateFeature.LedBrightness, value);
+            if (IsConnected && LightAnimation != LightAnimation.Pulsing) {
+                SetFeature(PowerMateFeature.LightBrightness, value);
             }
 
-            _ledBrightness = value;
+            _lightBrightness = value;
         }
     }
 
     /// <inheritdoc />
-    public int? LedPulseSpeed {
-        get => _ledPulseSpeed;
+    public LightAnimation LightAnimation {
+        get => _lightAnimation;
         set {
-            int? newSpeed = value;
-            if (newSpeed.HasValue) {
-                newSpeed = Math.Max(0, Math.Min(24, newSpeed.Value));
-            }
-
             if (IsConnected) {
-                if (newSpeed.HasValue != _ledPulseSpeed.HasValue) {
-                    SetFeature(PowerMateFeature.LedPulseAlwaysEnabled, Convert.ToByte(newSpeed.HasValue));
-                    if (!newSpeed.HasValue) {
-                        SetFeature(PowerMateFeature.LedBrightness, _ledBrightness);
-                    }
+                SetFeature(PowerMateFeature.LightPulseDuringSleepEnabled, Convert.ToByte(value == LightAnimation.SolidWhileAwakeAndPulsingDuringComputerStandby));
+                SetFeature(PowerMateFeature.LightPulseAlwaysEnabled, Convert.ToByte(value == LightAnimation.Pulsing));
+
+                if (value != LightAnimation.Solid) {
+                    SetFeature(PowerMateFeature.LightPulseSpeed, EncodePulseSpeed(LightPulseSpeed));
                 }
 
-                if (newSpeed.HasValue) {
-                    SetFeature(PowerMateFeature.LedPulseSpeed, EncodePulseSpeed(newSpeed.Value));
+                if (value != LightAnimation.Pulsing) {
+                    SetFeature(PowerMateFeature.LightBrightness, LightBrightness);
                 }
             }
 
-            _ledPulseSpeed = newSpeed;
+            _lightAnimation = value;
         }
     }
 
     /// <inheritdoc />
-    public bool LedPulseDuringSleep {
-        get => _ledPulseDuringSleep;
+    public int LightPulseSpeed {
+        get => _lightPulseSpeed;
         set {
-            if (IsConnected) {
-                SetFeature(PowerMateFeature.LedPulseDuringSleepEnabled, Convert.ToByte(value));
+            value = Math.Max(0, Math.Min(24, value));
+
+            if (IsConnected && LightAnimation != LightAnimation.Solid) {
+                SetFeature(PowerMateFeature.LightPulseSpeed, EncodePulseSpeed(value));
             }
 
-            _ledPulseDuringSleep = value;
+            _lightPulseSpeed = value;
         }
     }
 

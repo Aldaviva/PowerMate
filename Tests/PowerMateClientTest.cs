@@ -44,7 +44,7 @@ public class PowerMateClientTest {
         eventArrived.Wait(TestTimeout);
         actualEvent.HasValue.Should().BeTrue();
         actualEvent!.Value.IsPressed.Should().BeTrue();
-        actualEvent!.Value.IsRotationClockwise.Should().BeNull();
+        actualEvent!.Value.RotationDirection.Should().Be(RotationDirection.None);
         actualEvent!.Value.RotationDistance.Should().Be(0);
     }
 
@@ -79,7 +79,7 @@ public class PowerMateClientTest {
         connectedEventArg!.Value.Should().BeTrue();
         actualEvent.HasValue.Should().BeTrue();
         actualEvent!.Value.IsPressed.Should().BeTrue();
-        actualEvent!.Value.IsRotationClockwise.Should().BeNull();
+        actualEvent!.Value.RotationDirection.Should().Be(RotationDirection.None);
         actualEvent!.Value.RotationDistance.Should().Be(0);
     }
 
@@ -109,7 +109,7 @@ public class PowerMateClientTest {
         eventArrived.Wait(TestTimeout);
         actualEvent.HasValue.Should().BeTrue();
         actualEvent!.Value.IsPressed.Should().BeTrue();
-        actualEvent!.Value.IsRotationClockwise.Should().BeNull();
+        actualEvent!.Value.RotationDirection.Should().Be(RotationDirection.None);
         actualEvent!.Value.RotationDistance.Should().Be(0);
     }
 
