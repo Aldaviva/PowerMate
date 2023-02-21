@@ -12,9 +12,13 @@ PowerMate
 1. [Installation](#installation)
 1. [Usage](#usage)
     - [Connections](#connections)
-1. [Events](#events)
-    - [InputReceived](#inputreceived)
-    - [IsConnectedChanged](#isconnectedchanged)
+1. [Notifications](#notifications)
+    - [`InputReceived` event](#inputreceived-event)
+    - [`IsConnectedChanged` event](#isconnectedchanged-event)
+1. [LED Control](#led-control)
+    - [`LedBrightness` property](#ledbrightness-property)
+    - [`LedPulseSpeed` property](#ledpulsespeed-property)
+    - [`LedPulseDuringSleep` property](#ledpulseduringsleep-property)
 1. [Demos](#demos)
     - [Simple demo](#simple-demo)
     - [Volume control](#volume-control)
@@ -111,11 +115,15 @@ powerMate.IsConnectedChanged += (_, isConnected) => Console.WriteLine(isConnecte
     : "Disconnected from the PowerMate, attempting reconnection...");
 ```
 
-## Events
+## Notifications
 
-### InputReceived
+### `InputReceived` event
 
 Fired whenever the PowerMate knob is rotated, pressed, or released.
+
+```cs
+powerMate.InputReceived += (sender, input) => Console.WriteLine($"Received PowerMate event: {input}");
+```
 
 The event argument is a `PowerMateInput` struct with the following fields.
 
@@ -125,13 +133,62 @@ The event argument is a `PowerMateInput` struct with the following fields.
 |`IsRotationClockwise`|`bool?`|`true` `false` `null`|`true` if the knob is being rotated clockwise when viewed from above, `false` if it is being rotated counterclockwise, or `null` if it is not being rotated.|
 |`RotationDistance`|`uint`|`0` `1` `2`|How far, in arbitrary angular units, the knob was rotated since the last update. When you rotate the knob slowly, you will receive multiple events, each with this set to `1`. As you rotate it faster, updates are batched and this number increases to `2` or more. The highest value I have seen is `8`. This is always non-negative, regardless of the rotation direction; use `IsRotationClockwise` to determine the direction. If the knob is pressed without being rotated, this is `0`.|
 
-### IsConnectedChanged
+### `IsConnectedChanged` event
 
 Fired whenever the connection state of the PowerMate changes. Not fired when constructing or disposing the `PowerMateClient` instance.
 
 The event argument is a `bool` which is `true` when a PowerMate has reconnected, or `false` when it has disconnected.
 
 To get the value of this state at any time, read the `IsConnected` property on the `IPowerMateClient` instance.
+
+```cs
+powerMate.IsConnectedChanged += (_, isConnected) => Console.WriteLine(isConnected 
+    ? "Reconnected to a PowerMate." 
+    : "Disconnected from the PowerMate, attempting reconnection...");
+```
+
+## LED Control
+
+By default, the blue/cyan LED in the base of the PowerMate lights up when it's plugged in. You can change the intensity of the light, make it pulse at different frequencies, or turn it off entirely by setting the following properties. The values that you set are retained across reconnections.
+
+### `LedBrightness` property
+
+A writable `byte` property with valid values in the range [0, 255]. `0` represents off, and `255` is the brightest.
+
+The default value is `80`, which matches the brightness the device uses when no program has instructed it to change its brightness since it has been plugged in.
+
+Changes to `LedBrightness` will not take effect while the LED is pulsing with a non-null `LedPulseSpeed`.
+
+```cs
+powerMate.LedBrightness = 0;
+```
+```cs
+powerMate.LedBrightness = 255;
+```
+
+### `LedPulseSpeed` property
+
+A writable nullable `int` property with valid values in the range [0, 24]. Values outside that range are clamped. The default value is `null`, which represents no pulsing. The slowest pulse speed, `0`, is about 0.03443 Hz, or a 29.04 sec period. The fastest pulse speed, `24`, is about 15.63 Hz, or a 64 ms period.
+
+This speed also affects pulsing while the computer is asleep, which can be enabled with `LedPulseDuringSleep`.
+
+```cs
+powerMate.LedPulseSpeed = null;
+```
+```cs
+powerMate.LedPulseSpeed = 12;
+```
+
+### `LedPulseDuringSleep` property
+
+A writable `bool` property that defaults to `false`, which means the LED should have the same pulsing behavior when the computer is sleeping as when it is awake. If you set it to `true`, the LED will pulse at the frequency most recently set by `LedPulseSpeed` when the computer goes to sleep. 
+
+```cs
+powerMate.LedPulseDuringSleep = false;
+```
+```cs
+powerMate.LedPulseDuringSleep = true;
+```
 
 ## Demos
 

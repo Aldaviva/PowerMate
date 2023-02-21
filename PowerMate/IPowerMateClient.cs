@@ -45,13 +45,13 @@ public interface IPowerMateClient: IDisposable, INotifyPropertyChanged {
     /// <para>Get or set how bright the blue/cyan LED in the base of the PowerMate is, between <c>0</c> (off) and <c>255</c> (brightest), inclusive. When the device is first plugged in, it defaults to <c>80</c>.</para>
     /// <para>This property does not reflect brightness changes by other programs.</para>
     /// <para>It is safe to set this property even if a device is not connected. If you do, the brightness value will be saved until the device reconnects, when your value will be automatically reapplied to the device.</para>
-    /// <para>Changes to this property will not take effect while the LED is pulsing (i.e. while <see cref="LedPulseSpeed"/> is non-<see langword="null"/>). If you try to set a brightness while it's pulsing, the LED will continue pulsing until you set <see cref="LedPulseSpeed"/> to <see langword="null"/>, at which point the brightness value you tried to set earlier will take effect.</para>
+    /// <para>Changes to this property will not take effect while the LED is pulsing (i.e. while <see cref="LedPulseSpeed"/> is non-null). If you try to set a brightness while it's pulsing, the LED will continue pulsing until you set <see cref="LedPulseSpeed"/> to <see langword="null"/>, at which point the brightness value you tried to set earlier will take effect.</para>
     /// <para>Warning: changing this property very frequently can result in HID errors, so consider throttling your writes.</para>
     /// </summary>
     byte LedBrightness { get; set; }
 
     /// <summary>
-    /// <para>Get or set how fast, if at all, the blue/cyan LED in the base of the PowerMate is flashing, between <c>0</c> (slowest, about 0.03443 Hz) and <c>24</c> (fastest, about 15.63 Hz), inclusive. You can also set it to <see langword="null"/> to disable pulsing, in which case it will shine at the constant <see cref="LedBrightness"/> level. Values you set are clamped to the range <c>[0, 24]</c>.</para>
+    /// <para>Get or set how fast, if at all, the blue/cyan LED in the base of the PowerMate is flashing, between <c>0</c> (slowest, about 0.03443 Hz, a 29.04 sec period) and <c>24</c> (fastest, about 15.63 Hz, or a 64 ms period), inclusive. You can also set it to <see langword="null"/> to disable pulsing, in which case it will shine at the constant <see cref="LedBrightness"/> level. Values you set are clamped to the range <c>[0, 24]</c>.</para>
     /// <para>This property does not reflect pulsing changes by other programs.</para>
     /// <para>It is safe to set this property even if a device is not connected. If you do, the pulsing speed value will be saved until the device reconnects, when your value will be automatically reapplied to the device.</para>
     /// </summary>

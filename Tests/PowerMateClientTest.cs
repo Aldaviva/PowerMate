@@ -170,13 +170,7 @@ public class PowerMateClientTest {
     [InlineData(26, 0x02, 0x20)]
     public void EncodePulseSpeed(int input, byte expectedLeftByte, byte expectedRightByte) {
         byte[] actual = PowerMateClient.EncodePulseSpeed(input);
-        actual.Should().HaveCount(2);
-        if (!BitConverter.IsLittleEndian) {
-            (expectedLeftByte, expectedRightByte) = (expectedRightByte, expectedLeftByte);
-        }
-
-        actual[0].Should().Be(expectedLeftByte);
-        actual[1].Should().Be(expectedRightByte);
+        actual.Should().BeEquivalentTo(new[] { expectedLeftByte, expectedRightByte });
     }
 
 }
