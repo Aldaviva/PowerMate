@@ -18,7 +18,12 @@
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <IsPackable>false</IsPackable>
         <UseWindowsForms>true</UseWindowsForms>
+        <ApplicationIcon>powermate.ico</ApplicationIcon>
     </PropertyGroup>
+
+    <ItemGroup>
+      <Content Include="powermate.ico" />
+    </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="CSCore" Version="1.2.1.2" />
