@@ -77,8 +77,8 @@ public class PowerMateClientOutputTest {
         client.LightAnimation  = LightAnimation.Solid;
 
         client.LightAnimation.Should().Be(LightAnimation.Solid);
-        A.CallTo(() => _stream.SetFeature(A<byte[]>.That.IsSameSequenceAs(new byte[] { 0x00, 0x41, 0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00 }), 0, 9)).MustHaveHappenedOnceExactly();
-        A.CallTo(() => _stream.SetFeature(A<byte[]>.That.IsSameSequenceAs(new byte[] { 0x00, 0x41, 0x01, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00 }), 0, 9)).MustHaveHappenedOnceExactly();
+        A.CallTo(() => _stream.SetFeature(A<byte[]>.That.IsSameSequenceAs(new byte[] { 0x00, 0x41, 0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00 }), 0, 9)).MustHaveHappened();
+        A.CallTo(() => _stream.SetFeature(A<byte[]>.That.IsSameSequenceAs(new byte[] { 0x00, 0x41, 0x01, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00 }), 0, 9)).MustHaveHappened();
         A.CallTo(() => _stream.SetFeature(A<byte[]>.That.IsSameSequenceAs(new byte[] { 0x00, 0x41, 0x01, 0x01, 0x00, 0xff, 0x00, 0x00, 0x00 }), 0, 9)).MustHaveHappenedTwiceExactly();
     }
 
@@ -89,7 +89,7 @@ public class PowerMateClientOutputTest {
         client.LightAnimation  = LightAnimation.Pulsing;
 
         client.LightAnimation.Should().Be(LightAnimation.Pulsing);
-        A.CallTo(() => _stream.SetFeature(A<byte[]>.That.IsSameSequenceAs(new byte[] { 0x00, 0x41, 0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00 }), 0, 9)).MustHaveHappenedOnceExactly();
+        A.CallTo(() => _stream.SetFeature(A<byte[]>.That.IsSameSequenceAs(new byte[] { 0x00, 0x41, 0x01, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00 }), 0, 9)).MustHaveHappened();
         A.CallTo(() => _stream.SetFeature(A<byte[]>.That.IsSameSequenceAs(new byte[] { 0x00, 0x41, 0x01, 0x03, 0x00, 0x01, 0x00, 0x00, 0x00 }), 0, 9)).MustHaveHappenedOnceExactly();
         A.CallTo(() => _stream.SetFeature(A<byte[]>.That.IsSameSequenceAs(new byte[] { 0x00, 0x41, 0x01, 0x04, 0x00, 0x01, 0x00, 0x00, 0x00 }), 0, 9)).MustHaveHappenedOnceExactly();
     }
@@ -103,7 +103,7 @@ public class PowerMateClientOutputTest {
 
         client.LightAnimation.Should().Be(LightAnimation.SolidWhileAwakeAndPulsingDuringComputerStandby);
         A.CallTo(() => _stream.SetFeature(A<byte[]>.That.IsSameSequenceAs(new byte[] { 0x00, 0x41, 0x01, 0x02, 0x00, 0x01, 0x00, 0x00, 0x00 }), 0, 9)).MustHaveHappenedOnceExactly();
-        A.CallTo(() => _stream.SetFeature(A<byte[]>.That.IsSameSequenceAs(new byte[] { 0x00, 0x41, 0x01, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00 }), 0, 9)).MustHaveHappenedOnceExactly();
+        A.CallTo(() => _stream.SetFeature(A<byte[]>.That.IsSameSequenceAs(new byte[] { 0x00, 0x41, 0x01, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00 }), 0, 9)).MustHaveHappened();
         A.CallTo(() => _stream.SetFeature(A<byte[]>.That.IsSameSequenceAs(new byte[] { 0x00, 0x41, 0x01, 0x04, 0x00, 0x01, 0x00, 0x00, 0x00 }), 0, 9)).MustHaveHappenedOnceExactly();
         A.CallTo(() => _stream.SetFeature(A<byte[]>.That.IsSameSequenceAs(new byte[] { 0x00, 0x41, 0x01, 0x01, 0x00, 0x80, 0x00, 0x00, 0x00 }), 0, 9)).MustHaveHappenedTwiceExactly();
     }

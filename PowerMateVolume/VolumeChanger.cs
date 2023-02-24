@@ -5,40 +5,40 @@ namespace PowerMateVolume;
 /// <summary>
 /// Change the volume of the default Windows output device.
 /// </summary>
-public interface VolumeChanger: IDisposable {
+public interface IVolumeChanger: IDisposable {
 
     /// <summary>
     /// <para>How much the volume should change for each increment or decrement.</para>
     /// <para>Defaults to <c>0.01</c>, or 1 percentage point.</para>
     /// </summary>
     /// <exception cref="ArgumentOutOfRangeException" accessor="set">if the value is outside of the range <c>(0, 1]</c></exception>
-    float volumeIncrement { get; set; }
+    float VolumeIncrement { get; set; }
 
     /// <summary>
-    /// <para>Increase or decrease the volume by 1 or more increments of size <see cref="volumeIncrement"/>.</para>
+    /// <para>Increase or decrease the volume by 1 or more increments of size <see cref="VolumeIncrement"/>.</para>
     /// <para>To decrease the volume, pass a negative <paramref name="increments"/>.</para>
     /// </summary>
     /// <param name="increments"></param>
-    void increaseVolume(int increments = 1);
+    void IncreaseVolume(int increments = 1);
 
     /// <summary>
     /// <para>If the default audio output device is not currently muted, then mute it. Otherwise, unmute it.</para>
     /// </summary>
-    void toggleMute();
+    void ToggleMute();
 
 }
 
-public class VolumeChangerImpl: VolumeChanger {
+public class VolumeChanger: IVolumeChanger {
 
-    private readonly MMDeviceEnumerator mmDeviceEnumerator = new();
+    private readonly MMDeviceEnumerator _mmDeviceEnumerator = new();
 
-    private MMDevice?            defaultAudioEndpoint;
-    private AudioEndpointVolume? audioEndpointVolume;
+    private MMDevice?            _defaultAudioEndpoint;
+    private AudioEndpointVolume? _audioEndpointVolume;
 
     private float _volumeIncrement = 0.01f;
 
     /// <inheritdoc />
-    public float volumeIncrement {
+    public float VolumeIncrement {
         get => _volumeIncrement;
         set {
             if (value is not (> 0 and <= 1)) {
@@ -49,35 +49,35 @@ public class VolumeChangerImpl: VolumeChanger {
         }
     }
 
-    public VolumeChangerImpl() {
-        mmDeviceEnumerator.DefaultDeviceChanged += onDefaultDeviceChanged;
-        attachToDefaultDevice();
+    public VolumeChanger() {
+        _mmDeviceEnumerator.DefaultDeviceChanged += onDefaultDeviceChanged;
+        AttachToDefaultDevice();
     }
 
-    private void attachToDefaultDevice(MMDevice? newDefaultAudioEndpoint = null) {
-        detachFromDefaultDevice();
-        defaultAudioEndpoint = newDefaultAudioEndpoint ?? mmDeviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
-        audioEndpointVolume  = AudioEndpointVolume.FromDevice(defaultAudioEndpoint);
+    private void AttachToDefaultDevice(MMDevice? newDefaultAudioEndpoint = null) {
+        DetachFromDefaultDevice();
+        _defaultAudioEndpoint = newDefaultAudioEndpoint ?? _mmDeviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+        _audioEndpointVolume  = AudioEndpointVolume.FromDevice(_defaultAudioEndpoint);
     }
 
-    private void detachFromDefaultDevice() {
-        audioEndpointVolume?.Dispose();
-        audioEndpointVolume = null;
-        defaultAudioEndpoint?.Dispose();
-        defaultAudioEndpoint = null;
+    private void DetachFromDefaultDevice() {
+        _audioEndpointVolume?.Dispose();
+        _audioEndpointVolume = null;
+        _defaultAudioEndpoint?.Dispose();
+        _defaultAudioEndpoint = null;
     }
 
-    public void increaseVolume(int increments = 1) {
-        if (audioEndpointVolume is not null && increments != 0) {
-            float newVolume = Math.Max(0, Math.Min(1, audioEndpointVolume.MasterVolumeLevelScalar + volumeIncrement * increments));
-            audioEndpointVolume.MasterVolumeLevelScalar = newVolume;
+    public void IncreaseVolume(int increments = 1) {
+        if (_audioEndpointVolume is not null && increments != 0) {
+            float newVolume = Math.Max(0, Math.Min(1, _audioEndpointVolume.MasterVolumeLevelScalar + VolumeIncrement * increments));
+            _audioEndpointVolume.MasterVolumeLevelScalar = newVolume;
             Console.WriteLine($"Set volume to {newVolume:P2}");
         }
     }
 
-    public void toggleMute() {
-        if (audioEndpointVolume is not null) {
-            audioEndpointVolume.IsMuted ^= true;
+    public void ToggleMute() {
+        if (_audioEndpointVolume is not null) {
+            _audioEndpointVolume.IsMuted ^= true;
         }
     }
 
@@ -86,16 +86,16 @@ public class VolumeChangerImpl: VolumeChanger {
             eventArgs.TryGetDevice(out MMDevice? newDefaultAudioEndpoint);
 
             if (newDefaultAudioEndpoint is not null) {
-                attachToDefaultDevice(newDefaultAudioEndpoint);
+                AttachToDefaultDevice(newDefaultAudioEndpoint);
             }
         }
     }
 
     protected virtual void Dispose(bool disposing) {
         if (disposing) {
-            detachFromDefaultDevice();
-            mmDeviceEnumerator.DefaultDeviceChanged -= onDefaultDeviceChanged;
-            mmDeviceEnumerator.Dispose();
+            DetachFromDefaultDevice();
+            _mmDeviceEnumerator.DefaultDeviceChanged -= onDefaultDeviceChanged;
+            _mmDeviceEnumerator.Dispose();
         }
     }
 

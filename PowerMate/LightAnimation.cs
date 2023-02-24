@@ -6,17 +6,20 @@
 public enum LightAnimation {
 
     /// <summary>
-    /// The light will shine at a constant brightness, controlled by <see cref="IPowerMateClient.LightBrightness"/>.
+    /// <para>The PowerMate LED will shine at a constant brightness, controlled by <see cref="IPowerMateClient.LightBrightness"/>.</para>
+    /// <para>When the computer to which the PowerMate is connected goes to sleep, the light will turn off.</para>
     /// </summary>
     Solid,
 
     /// <summary>
-    /// The light will get brighter and dimmer in a cyclical animation, the frequency of which is controlled by <see cref="IPowerMateClient.LightPulseSpeed"/>.
+    /// <para>The light will get brighter and dimmer in a cyclical animation, the frequency of which is controlled by <see cref="IPowerMateClient.LightPulseSpeed"/>.</para>
+    /// <para>When the computer to which the PowerMate is connected goes to sleep, the light will turn off.</para>
     /// </summary>
     Pulsing,
 
     /// <summary>
-    /// While the computer to which the PowerMate is attached is awake, use <see cref="Solid"/>, but while it is asleep, use <see cref="Pulsing"/>.
+    /// <para>The PowerMate LED will shine at a constant brightness, controlled by <see cref="IPowerMateClient.LightBrightness"/>.</para>
+    /// <para>When the computer to which the PowerMate is connected goes to sleep, the light will get brighter and dimmer in a cyclical animation, the frequency of which is controlled by <see cref="IPowerMateClient.LightPulseSpeed"/>.</para>
     /// </summary>
     SolidWhileAwakeAndPulsingDuringComputerStandby
 

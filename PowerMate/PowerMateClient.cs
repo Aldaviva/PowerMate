@@ -85,8 +85,8 @@ public class PowerMateClient: IPowerMateClient {
             _hidStream.Closed        += ReattachToDevice;
             _hidStream.ReadTimeout   =  Timeout.Infinite;
             _cancellationTokenSource =  new CancellationTokenSource();
-            LightAnimation           =  LightAnimation; //resend all pulsing and brightness values to device
             IsConnected              =  true;
+            LightAnimation           =  LightAnimation; //resend all pulsing and brightness values to device
 
             try {
                 Task.Factory.StartNew(HidReadLoop, _cancellationTokenSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);

@@ -58,7 +58,7 @@ public interface IPowerMateClient: IDisposable, INotifyPropertyChanged {
     /// <para>Enables or disables a pulsing animation of the blue/cyan LED in the base of the PowerMate.</para>
     /// <para>By default, this is <see cref="PowerMate.LightAnimation.Solid"/>, and the light shines at a constant brightness controlled by <see cref="LightBrightness"/>.</para>
     /// <para>To enable the pulsing animation, set this to <see cref="PowerMate.LightAnimation.Pulsing"/>, and set <see cref="LightPulseSpeed"/> to control the frequency.</para>
-    /// <para>By setting this to <see cref="PowerMate.LightAnimation.SolidWhileAwakeAndPulsingDuringComputerStandby"/>, you can set the light to shine at a constant brightness while the computer which the device is attached to is awake, but change to a pulsing animation when the computer goes to sleep.</para>
+    /// <para>By setting this to <see cref="PowerMate.LightAnimation.SolidWhileAwakeAndPulsingDuringComputerStandby"/>, you can set the light to shine at a constant brightness while the computer which the device is attached to is awake, but change to a pulsing animation when the computer goes to sleep, instead of turning off when the computer goes to sleep.</para>
     /// <para>This property does not reflect animation changes made to the device by other programs running on your computer.</para>
     /// <para>It is safe to set this property even if a device is not connected. If you do, the animation will be saved until the device reconnects, when your value will be automatically
     /// reapplied to the device.</para>
