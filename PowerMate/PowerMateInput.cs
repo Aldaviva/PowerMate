@@ -1,7 +1,7 @@
 ﻿namespace PowerMate;
 
 /// <summary>
-/// Event data describing how the PowerMate knob was rotated, pressed, or released.
+/// Event data describing how the PowerMate knob was rotated, pressed, or released. Emitted by <see cref="IPowerMateClient.InputReceived"/>.
 /// </summary>
 public readonly struct PowerMateInput {
 
