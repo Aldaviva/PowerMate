@@ -37,7 +37,7 @@ public class PowerMateClient: AbstractHidClient, IPowerMateClient {
 
     /// <inheritdoc />
     protected override void OnHidRead(byte[] readBuffer) {
-        Console.WriteLine($"Read HID bytes {string.Join(" ", readBuffer.Select(b => $"{b:x2}"))}"); //FIXME development
+        // Console.WriteLine($"Read HID bytes {string.Join(" ", readBuffer.Select(b => $"{b:x2}"))}");
         PowerMateInput input = new(readBuffer);
         EventSynchronizationContext.Post(_ => { InputReceived?.Invoke(this, input); }, null);
 
@@ -136,7 +136,7 @@ public class PowerMateClient: AbstractHidClient, IPowerMateClient {
             (encoded[0], encoded[1]) = (encoded[1], encoded[0]);
         }
 
-        Console.WriteLine($"Encoded pulse speed {pulseSpeed} to {encoded[0]:x2} {encoded[1]:x2}"); //FIXME debugging
+        // Console.WriteLine($"Encoded pulse speed {pulseSpeed} to {encoded[0]:x2} {encoded[1]:x2}");
         return encoded;
     }
 

@@ -35,7 +35,6 @@ powerMate.InputReceived += (_, powerMateEvent) => {
     }
 };
 
-//FIXME remove this once the light settings are being reset based on HID reads, not the computer resuming from standby
 SystemEvents.PowerModeChanged += (_, args) => {
     if (args.Mode == PowerModes.Resume) {
         // #1: On Jarnsaxa, waking up from sleep resets the PowerMate's light settings, so set them all again
