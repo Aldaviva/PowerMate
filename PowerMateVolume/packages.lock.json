@@ -8,6 +8,14 @@
         "resolved": "1.2.1.2",
         "contentHash": "DoQKUcdZLQawo3mOg8CvujJD9YkvTt6NtEu7S+OCo8+ySl8eCeUw4LFyL2E1OcAkPU918HZM6sUNcvIMcXWg6g=="
       },
+      "HidClient": {
+        "type": "Transitive",
+        "resolved": "1.0.1",
+        "contentHash": "VtwKEL99yG3NHdTNbJQyyrx4KfzpQEmuIgWqd57f45pHf0qOHnzFjJ4lRKjmKIkNu28QXCVhHKnfV7ORyX+Z1w==",
+        "dependencies": {
+          "HidSharp": "2.1.0"
+        }
+      },
       "HidSharp": {
         "type": "Transitive",
         "resolved": "2.1.0",
@@ -16,7 +24,7 @@
       "powermate": {
         "type": "Project",
         "dependencies": {
-          "HidSharp": "[2.1.0, )"
+          "HidClient": "[1.0.1, )"
         }
       }
     },

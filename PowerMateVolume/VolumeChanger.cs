@@ -32,8 +32,8 @@ public class VolumeChanger: IVolumeChanger {
 
     private readonly MMDeviceEnumerator _mmDeviceEnumerator = new();
 
-    private MMDevice?            _defaultAudioEndpoint;
-    private AudioEndpointVolume? _audioEndpointVolume;
+    private MMDevice?            _audioOutputEndpoint;
+    private AudioEndpointVolume? _audioOutputVolume;
 
     private float _volumeIncrement = 0.01f;
 
@@ -51,33 +51,40 @@ public class VolumeChanger: IVolumeChanger {
 
     public VolumeChanger() {
         _mmDeviceEnumerator.DefaultDeviceChanged += onDefaultDeviceChanged;
-        AttachToDefaultDevice();
+        AttachToDevice();
     }
 
-    private void AttachToDefaultDevice(MMDevice? newDefaultAudioEndpoint = null) {
-        DetachFromDefaultDevice();
-        _defaultAudioEndpoint = newDefaultAudioEndpoint ?? _mmDeviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
-        _audioEndpointVolume  = AudioEndpointVolume.FromDevice(_defaultAudioEndpoint);
+    private void AttachToDevice(MMDevice? newAudioEndpoint = null) {
+        DetachFromCurrentDevice();
+        try {
+            _audioOutputEndpoint = newAudioEndpoint ?? _mmDeviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+        } catch (CoreAudioAPIException) {
+            // program started when there were no audio output devices connected
+            // leave _defaultAudioEndpoint null and wait for onDefaultDeviceChanged to update it when a device is connected
+            return;
+        }
+
+        _audioOutputVolume = AudioEndpointVolume.FromDevice(_audioOutputEndpoint);
     }
 
-    private void DetachFromDefaultDevice() {
-        _audioEndpointVolume?.Dispose();
-        _audioEndpointVolume = null;
-        _defaultAudioEndpoint?.Dispose();
-        _defaultAudioEndpoint = null;
+    private void DetachFromCurrentDevice() {
+        _audioOutputVolume?.Dispose();
+        _audioOutputVolume = null;
+        _audioOutputEndpoint?.Dispose();
+        _audioOutputEndpoint = null;
     }
 
     public void IncreaseVolume(int increments = 1) {
-        if (_audioEndpointVolume is not null && increments != 0) {
-            float newVolume = Math.Max(0, Math.Min(1, _audioEndpointVolume.MasterVolumeLevelScalar + VolumeIncrement * increments));
-            _audioEndpointVolume.MasterVolumeLevelScalar = newVolume;
-            Console.WriteLine($"Set volume to {newVolume:P2}");
+        if (_audioOutputVolume is not null && increments != 0) {
+            float newVolume = Math.Max(0, Math.Min(1, _audioOutputVolume.MasterVolumeLevelScalar + VolumeIncrement * increments));
+            _audioOutputVolume.MasterVolumeLevelScalar = newVolume;
+            // Console.WriteLine($"Set volume to {newVolume:P2}");
         }
     }
 
     public void ToggleMute() {
-        if (_audioEndpointVolume is not null) {
-            _audioEndpointVolume.IsMuted ^= true;
+        if (_audioOutputVolume is not null) {
+            _audioOutputVolume.IsMuted ^= true;
         }
     }
 
@@ -86,14 +93,14 @@ public class VolumeChanger: IVolumeChanger {
             eventArgs.TryGetDevice(out MMDevice? newDefaultAudioEndpoint);
 
             if (newDefaultAudioEndpoint is not null) {
-                AttachToDefaultDevice(newDefaultAudioEndpoint);
+                AttachToDevice(newDefaultAudioEndpoint);
             }
         }
     }
 
     protected virtual void Dispose(bool disposing) {
         if (disposing) {
-            DetachFromDefaultDevice();
+            DetachFromCurrentDevice();
             _mmDeviceEnumerator.DefaultDeviceChanged -= onDefaultDeviceChanged;
             _mmDeviceEnumerator.Dispose();
         }

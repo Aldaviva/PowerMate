@@ -8,10 +8,10 @@ if (!float.TryParse(Environment.GetCommandLineArgs().ElementAtOrDefault(1), out 
     volumeIncrement = 0.01f;
 }
 
-using IPowerMateClient powerMateClient = new PowerMateClient();
-using IVolumeChanger   volumeChanger   = new VolumeChanger { VolumeIncrement = volumeIncrement };
+using IPowerMateClient powerMate     = new PowerMateClient();
+using IVolumeChanger   volumeChanger = new VolumeChanger { VolumeIncrement = volumeIncrement };
 
-powerMateClient.LightBrightness = 0;
+powerMate.LightBrightness = 0;
 
 CancellationTokenSource cancellationTokenSource = new();
 Console.CancelKeyPress += (_, eventArgs) => {
@@ -19,7 +19,7 @@ Console.CancelKeyPress += (_, eventArgs) => {
     cancellationTokenSource.Cancel();
 };
 
-powerMateClient.InputReceived += (_, powerMateEvent) => {
+powerMate.InputReceived += (_, powerMateEvent) => {
     switch (powerMateEvent) {
         case { IsPressed: true, RotationDirection: RotationDirection.None }:
             volumeChanger.ToggleMute();
@@ -35,10 +35,11 @@ powerMateClient.InputReceived += (_, powerMateEvent) => {
     }
 };
 
+//FIXME remove this once the light settings are being reset based on HID reads, not the computer resuming from standby
 SystemEvents.PowerModeChanged += (_, args) => {
     if (args.Mode == PowerModes.Resume) {
         // #1: On Jarnsaxa, waking up from sleep resets the PowerMate's light settings, so set them all again
-        powerMateClient.LightAnimation = powerMateClient.LightAnimation;
+        powerMate.LightAnimation = powerMate.LightAnimation;
     }
 };
 

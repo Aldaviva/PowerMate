@@ -3,6 +3,16 @@
 /// <summary>
 /// Event data describing how the PowerMate knob was rotated, pressed, or released. Emitted by <see cref="IPowerMateClient.InputReceived"/>.
 /// </summary>
+/// <remarks>
+/// This is received as a 7-byte array.
+/// 0: always 0?
+/// 1: 1 if knob is pushed down, 0 otherwise
+/// 2: knob rotation direction and distance, or 0 if not rotated
+/// 3: always 0?
+/// 4: led brightness, 0-255, reflects the pulsing brightness too
+/// 5: 0x10 when not pulsing, 0x21 when pulsing at speed 9, 10, or 11, 0x11 pulse speed 8
+/// 6: 0 when not pulsing, 0x1 speed 8, 0x2 speed 9, 0x4 when pulsing with speed 10, 0x6 when pulsing with speed 11, 0x8 when pulsing with speed 12
+/// </remarks>
 public readonly struct PowerMateInput {
 
     /// <summary>
@@ -27,11 +37,16 @@ public readonly struct PowerMateInput {
     /// </summary>
     public readonly uint RotationDistance = 0;
 
+    internal readonly byte           ActualLightBrightness;
+    internal readonly LightAnimation ActualLightAnimation;
+    internal readonly int            ActualLightPulseSpeed;
+
     /// <summary>
     /// Parse input from raw HID bytes.
     /// </summary>
     /// <param name="rawData">7-item byte array from the HID update</param>
-    public PowerMateInput(IReadOnlyList<byte> rawData): this(rawData[1] == 0x01, GetRotationDirection(rawData), GetRotationDistance(rawData)) { }
+    public PowerMateInput(IReadOnlyList<byte> rawData): this(rawData[1] == 0x01, DecodeRotationDirection(rawData), DecodeRotationDistance(rawData), rawData[4], DecodeLightAnimation(rawData),
+        DecodeLightPulseSpeed(rawData)) { }
 
     /// <summary>
     /// Construct a synthetic instance, useful for testing.
@@ -45,18 +60,39 @@ public readonly struct PowerMateInput {
     /// events, each with this set to <c>1</c>. As you rotate it faster, updates are batched and this number increases to <c>2</c> or more. The highest value I have seen is <c>8</c>.</para><para>This
     /// is always non-negative, regardless of the rotation direction; use <see cref="RotationDirection"/> to determine the direction.</para><para>If the knob is pressed without being rotated, this
     /// will be <c>0</c> and <see cref="RotationDirection"/> will be <see cref="PowerMate.RotationDirection.None"/>.</para></param>
-    public PowerMateInput(bool isPressed, RotationDirection rotationDirection, uint rotationDistance) {
-        IsPressed         = isPressed;
-        RotationDirection = rotationDirection;
-        RotationDistance  = rotationDistance;
+    public PowerMateInput(bool isPressed, RotationDirection rotationDirection, uint rotationDistance): this(isPressed, rotationDirection, rotationDistance, 0, LightAnimation.Solid, 0) { }
+
+    private PowerMateInput(bool isPressed, RotationDirection rotationDirection, uint rotationDistance, byte actualLightBrightness, LightAnimation actualLightAnimation, int actualLightPulseSpeed) {
+        IsPressed             = isPressed;
+        RotationDirection     = rotationDirection;
+        RotationDistance      = rotationDistance;
+        ActualLightBrightness = actualLightBrightness;
+        ActualLightAnimation  = actualLightAnimation;
+        ActualLightPulseSpeed = actualLightPulseSpeed;
     }
 
-    private static uint GetRotationDistance(IReadOnlyList<byte> rawData) => (uint) Math.Abs((int) (sbyte) rawData[2]);
+    private static uint DecodeRotationDistance(IReadOnlyList<byte> rawData) => (uint) Math.Abs((int) (sbyte) rawData[2]);
 
-    private static RotationDirection GetRotationDirection(IReadOnlyList<byte> rawData) => rawData[2] switch {
+    private static RotationDirection DecodeRotationDirection(IReadOnlyList<byte> rawData) => rawData[2] switch {
         > 0 and < 128 => RotationDirection.Clockwise,
         > 128         => RotationDirection.Counterclockwise,
-        0 or _        => RotationDirection.None
+        _             => RotationDirection.None
+    };
+
+    /// <exception cref="ArgumentOutOfRangeException">on unknown values</exception>
+    private static LightAnimation DecodeLightAnimation(IReadOnlyList<byte> rawData) => (rawData[5] & 0b111) switch {
+        0 => LightAnimation.Solid,
+        1 => LightAnimation.Pulsing,
+        4 => LightAnimation.SolidWhileAwakeAndPulsingDuringComputerStandby,
+        _ => throw new ArgumentOutOfRangeException($"Unknown light animation read: 0x{rawData[5]:x2}")
+    };
+
+    /// <exception cref="ArgumentOutOfRangeException">on unknown values</exception>
+    private static int DecodeLightPulseSpeed(IReadOnlyList<byte> rawData) => (rawData[5] >> 4) switch {
+        0 => 7 - rawData[6] / 2,
+        1 => 7 + rawData[6],
+        2 => 8 + rawData[6] / 2,
+        _ => throw new ArgumentOutOfRangeException($"Unknown light pulse speed read: 0x{rawData[5]:x2} 0x{rawData[6]:x2}")
     };
 
     /// <inheritdoc cref="object.Equals(object?)" />

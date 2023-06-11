@@ -1,7 +1,10 @@
-﻿using HidSharp;
+﻿using System.Diagnostics.CodeAnalysis;
+using HidSharp;
+using PowerMate;
 
 namespace Tests;
 
+[SuppressMessage("Style", "IDE0017:Simplify object initialization", Justification = "explicit invocation ordering for tests")]
 public class PowerMateClientOutputTest {
 
     private readonly HidDevice  _device     = A.Fake<HidDevice>();
