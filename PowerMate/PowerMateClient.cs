@@ -10,6 +10,8 @@ public class PowerMateClient: AbstractHidClient, IPowerMateClient {
 
     private const byte DefaultLightBrightness = 80;
 
+    private static readonly TimeSpan MinFeatureResetInterval = TimeSpan.FromMilliseconds(500);
+
     /// <inheritdoc />
     protected override int VendorId { get; } = 0x077d;
 
@@ -32,7 +34,7 @@ public class PowerMateClient: AbstractHidClient, IPowerMateClient {
 
     /// <inheritdoc />
     protected override void OnConnect() {
-        LightAnimation = LightAnimation; //resend all pulsing and brightness values to device
+        SetAllFeatures();
     }
 
     /// <inheritdoc />
@@ -41,12 +43,8 @@ public class PowerMateClient: AbstractHidClient, IPowerMateClient {
         PowerMateInput input = new(readBuffer);
         EventSynchronizationContext.Post(_ => { InputReceived?.Invoke(this, input); }, null);
 
-        if ((LightAnimation != input.ActualLightAnimation
-                || (LightAnimation != LightAnimation.Pulsing && LightBrightness != input.ActualLightBrightness)
-                || (LightAnimation == LightAnimation.Pulsing && LightPulseSpeed != input.ActualLightPulseSpeed))
-            && _mostRecentFeatureSetTime is not null && DateTime.Now - _mostRecentFeatureSetTime > TimeSpan.FromMilliseconds(500)) {
-            Console.WriteLine("Resetting features...");
-            LightAnimation = LightAnimation;
+        if (!AreDeviceFeaturesUpToDate(input) && EnoughTimeHasPassedThatFeaturesCanBeAutoReset()) {
+            SetAllFeatures();
         }
     }
 
@@ -121,6 +119,30 @@ public class PowerMateClient: AbstractHidClient, IPowerMateClient {
                 DeviceStream?.SetFeature(featureData);
             }
         }
+    }
+
+    private bool AreDeviceFeaturesUpToDate(PowerMateInput deviceInput) =>
+        LightAnimation == deviceInput.ActualLightAnimation
+        && (LightAnimation == LightAnimation.Pulsing || LightBrightness == deviceInput.ActualLightBrightness)
+        && (LightAnimation != LightAnimation.Pulsing || LightPulseSpeed == deviceInput.ActualLightPulseSpeed);
+
+    private bool EnoughTimeHasPassedThatFeaturesCanBeAutoReset() => _mostRecentFeatureSetTime is not null && DateTime.Now - _mostRecentFeatureSetTime > MinFeatureResetInterval;
+
+    private void SetAllFeatures() {
+        LightAnimation = LightAnimation;
+    }
+
+    /// <inheritdoc />
+    public bool SetAllFeaturesIfStale() {
+        byte[] featureBuffer = new byte[9];
+        DeviceStream?.GetFeature(featureBuffer);
+
+        bool shouldSetFeatures = DeviceStream is not null && !AreDeviceFeaturesUpToDate(new PowerMateInput(featureBuffer)) && EnoughTimeHasPassedThatFeaturesCanBeAutoReset();
+        if (shouldSetFeatures) {
+            SetAllFeatures();
+        }
+
+        return shouldSetFeatures;
     }
 
     /// <param name="pulseSpeed">in the range [0, 24]</param>

@@ -53,4 +53,6 @@ public interface IPowerMateClient: IHidClient {
     /// </summary>
     int LightPulseSpeed { get; set; }
 
+    bool SetAllFeaturesIfStale();
+
 }
