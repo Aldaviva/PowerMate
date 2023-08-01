@@ -8,3 +8,4 @@
 P:System.Array.Length get -T:System.OverflowException
 M:System.IO.Stream.ReadAsync(System.Byte[],System.Int32,System.Int32,System.Threading.CancellationToken) -T:System.NotSupportedException
 M:System.Math.Abs(System.Int32) -T:System.OverflowException
+M:System.TimeSpan.FromMilliseconds(System.Double) -T:System.OverflowException

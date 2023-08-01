@@ -37,10 +37,7 @@ powerMate.InputReceived += (_, powerMateEvent) => {
 using IStandbyListener standbyListener = new EventLogStandbyListener();
 standbyListener.FatalError += (_, exception) =>
     MessageBox.Show("Event log subscription is broken, continuing without resume detection: " + exception, "PowerMateVolume", MessageBoxButtons.OK, MessageBoxIcon.Error);
-standbyListener.Resumed += (_, _) => MessageBox.Show(powerMate.SetAllFeaturesIfStale()
-        ? "On resume, PowerMate had wrong settings, so PowerMateVolume reset all the features on the device."
-        : "On resume, PowerMate had right settings, so PowerMateVolume did not reset the features on the device.",
-    "PowerMateVolume", MessageBoxButtons.OK, MessageBoxIcon.Information);
+standbyListener.Resumed += (_, _) => powerMate.SetAllFeaturesIfStale();
 
 Console.WriteLine("Listening for PowerMate events");
 cancellationTokenSource.Token.WaitHandle.WaitOne();

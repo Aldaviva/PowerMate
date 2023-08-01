@@ -53,6 +53,12 @@ public interface IPowerMateClient: IHidClient {
     /// </summary>
     int LightPulseSpeed { get; set; }
 
+    /// <summary>
+    /// <para>Reapplies all of the values you set for <see cref="LightAnimation"/>, <see cref="LightBrightness"/>, and <see cref="LightPulseSpeed"/> from this library's internal state to the PowerMate device.</para>
+    /// <para>This is useful because the PowerMate loses these values when the computer it is attached to enters and leaves standby mode. After resuming from standby, the PowerMate device will load its default settings, erasing your changes. To fix this and restore the values you set before standby, call this method when the computer resumes.</para>
+    /// <para>To detect when a Windows computer resumes from standby, it is more reliable to read from the Windows Event Log than to subscribe to the <c>Microsoft.Win32.SystemEvents.PowerModeChanged</c> event, which occasionally does not fire an event when resuming from standby. For an example Event Log listener implementation, see <see href="https://github.com/Aldaviva/PowerMate/blob/74af5bb2daad6cbc0e07b823b1378cab172175c1/PowerMateVolume/StandbyEventEmitter.cs"/>.</para>
+    /// </summary>
+    /// <returns></returns>
     bool SetAllFeaturesIfStale();
 
 }

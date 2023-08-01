@@ -19,6 +19,7 @@ PowerMate
     - [`LightBrightness` property](#lightbrightness-property)
     - [`LightAnimation` property](#lightanimation-property)
     - [`LightPulseSpeed` property](#lightpulsespeed-property)
+    - [PowerMate light state loss on resume](#powermate-light-state-loss-on-resume)
 1. [Demos](#demos)
     - [Simple demo](#simple-demo)
     - [Volume control](#volume-control)
@@ -192,6 +193,29 @@ This property controls how fast the light pulses when [`LightAnimation`](#lighta
 powerMate.LightPulseSpeed = 12;
 powerMate.LightAnimation = LightAnimation.Pulsing;
 ```
+
+### PowerMate light state loss on resume
+
+When the computer goes into standby mode and then resumes, the PowerMate loses all of its state and resets its settings to their default values, erasing your light control changes. There are two techniques to fix this, and you should use both of them.
+
+#### Automatically reapply settings on stale input
+
+Each time the PowerMate device sends an input to the computer, such as a knob turn or press, it also sends the current state of the lights. This library checks that device state and compares it to the values you set using `LightBrightness`, `LightAnimation`, and `LightPulseSpeed`. If any of them differ, it will automatically send the correct values to the PowerMate. You don't have to do anything to enable this behavior.
+
+#### Manually reapply settings on resume
+
+Unfortunately, the user is likely to see the incorrect light state before they send an input with the PowerMate: it will be wrong as soon as the computer resumes, and they may not need to touch the PowerMate until much later.
+
+To fix this, your program should also wait for the computer to resume from standby, and when it does, force this library to resend all of the light control property values to the device by calling **`SetAllFeaturesIfStale()`**.
+
+To detect when a Windows computer resumes from standby, a successful strategy is to [listen for event ID 107 from the Kernel-Power source in the System log](https://github.com/Aldaviva/PowerMate/blob/74af5bb2daad6cbc0e07b823b1378cab172175c1/PowerMateVolume/StandbyEventEmitter.cs).
+
+```cs
+using IStandbyListener standbyListener = new EventLogStandbyListener();
+standbyListener.Resumed += (_, _) => powerMate.SetAllFeaturesIfStale();
+```
+
+⛔ You should not listen for [`SystemEvents.PowerModeChanged`](https://learn.microsoft.com/en-us/dotnet/api/microsoft.win32.systemevents.powermodechanged?view=windowsdesktop-7.0) events because they are unreliable and do not get sent about 5% of the time.
 
 ## Demos
 

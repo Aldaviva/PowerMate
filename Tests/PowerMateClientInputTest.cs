@@ -50,4 +50,17 @@ public class PowerMateClientInputTest {
         actualEvent!.Value.RotationDistance.Should().Be(0);
     }
 
+    [Fact]
+    public void ResetAllFeaturesOnStaleRead() {
+        PowerMateClient client = new(_deviceList) {
+            LightBrightness = 255
+        };
+        byte[] expected = { 0x00, 0x41, 0x01, 0x01, 0x00, 0xFF, 0x00, 0x00, 0x00 };
+        A.CallTo(() => _stream.SetFeature(A<byte[]>.That.IsSameSequenceAs(expected), A<int>._, A<int>._)).MustHaveHappenedOnceExactly();
+
+        Thread.Sleep(750);
+
+        A.CallTo(() => _stream.SetFeature(A<byte[]>.That.IsSameSequenceAs(expected), A<int>._, A<int>._)).MustHaveHappenedTwiceOrMore();
+    }
+
 }

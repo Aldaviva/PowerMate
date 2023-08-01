@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using HidSharp;
 using PowerMate;
 
@@ -109,6 +110,33 @@ public class PowerMateClientOutputTest {
         A.CallTo(() => _stream.SetFeature(A<byte[]>.That.IsSameSequenceAs(new byte[] { 0x00, 0x41, 0x01, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00 }), 0, 9)).MustHaveHappened();
         A.CallTo(() => _stream.SetFeature(A<byte[]>.That.IsSameSequenceAs(new byte[] { 0x00, 0x41, 0x01, 0x04, 0x00, 0x01, 0x00, 0x00, 0x00 }), 0, 9)).MustHaveHappenedOnceExactly();
         A.CallTo(() => _stream.SetFeature(A<byte[]>.That.IsSameSequenceAs(new byte[] { 0x00, 0x41, 0x01, 0x01, 0x00, 0x80, 0x00, 0x00, 0x00 }), 0, 9)).MustHaveHappenedTwiceExactly();
+    }
+
+    [Fact]
+    public void RetrySetFeatureOnceOnFailure() {
+        PowerMateClient client   = new(_deviceList);
+        byte[]          expected = { 0x00, 0x41, 0x01, 0x01, 0x00, 0xFF, 0x00, 0x00, 0x00 };
+        A.CallTo(() => _stream.SetFeature(A<byte[]>.That.IsSameSequenceAs(expected), A<int>._, A<int>._)).Throws(new IOException("The operation completed successfully", new Win32Exception(0))).Once()
+            .Then.DoesNothing();
+
+        client.LightBrightness = 255;
+
+        A.CallTo(() => _stream.SetFeature(A<byte[]>.That.IsSameSequenceAs(expected), A<int>._, A<int>._)).MustHaveHappenedTwiceExactly();
+    }
+
+    [Fact]
+    public void SetAllFeaturesIfStale() {
+        PowerMateClient client = new(_deviceList);
+        client.LightBrightness = 255;
+        byte[] expected = { 0x00, 0x41, 0x01, 0x01, 0x00, 0xFF, 0x00, 0x00, 0x00 };
+        A.CallTo(() => _stream.SetFeature(A<byte[]>.That.IsSameSequenceAs(expected), A<int>._, A<int>._)).MustHaveHappenedOnceExactly();
+        A.CallTo(() => _stream.GetFeature(A<byte[]>._, A<int>._, A<int>._)).Invokes((byte[] buffer, int offset, int count) => { Array.Fill(buffer, (byte) 0, offset, count); });
+
+        Thread.Sleep(750);
+        bool actual = client.SetAllFeaturesIfStale();
+
+        actual.Should().BeTrue();
+        A.CallTo(() => _stream.SetFeature(A<byte[]>.That.IsSameSequenceAs(expected), A<int>._, A<int>._)).MustHaveHappenedTwiceOrMore();
     }
 
 }

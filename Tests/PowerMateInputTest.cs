@@ -172,4 +172,15 @@ public class PowerMateInputTest {
         actual.ActualLightBrightness.Should().Be(expected);
     }
 
+    [Theory]
+    [InlineData(7)]  // illegal animation
+    [InlineData(48)] // illegal pulse speed
+    public void ArgumentOutOfRange(byte inputByte5) {
+#pragma warning disable CA1806 // the side effect of the constructor is an exception, which we want to test
+        // ReSharper disable once ObjectCreationAsStatement - the side effect of the constructor is an exception, which we want to test
+        Action thrower = () => new PowerMateInput(new byte[] { 0, 0, 1, 0, 0, inputByte5, 0x0a });
+#pragma warning restore CA1806
+        thrower.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
 }
