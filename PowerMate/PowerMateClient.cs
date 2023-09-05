@@ -107,16 +107,22 @@ public class PowerMateClient: AbstractHidClient, IPowerMateClient {
     // ExceptionAdjustment: M:System.Array.Copy(System.Array,System.Int32,System.Array,System.Int32,System.Int32) -T:System.RankException
     // ExceptionAdjustment: M:System.Array.Copy(System.Array,System.Int32,System.Array,System.Int32,System.Int32) -T:System.ArrayTypeMismatchException
     private void SetFeature(PowerMateFeature feature, params byte[] payload) {
-        _mostRecentFeatureSetTime = DateTime.Now;
         byte[] featureData = { 0x00, 0x41, 0x01, (byte) feature, 0x00, /* payload copied here */ 0x00, 0x00, 0x00, 0x00 };
         Array.Copy(payload, 0, featureData, 5, Math.Min(payload.Length, 4));
 
         try {
-            DeviceStream?.SetFeature(featureData);
+            SetFeatureAndTime();
         } catch (IOException e) {
             if (e.InnerException is Win32Exception { NativeErrorCode: 0 }) {
                 // retry once with no delay if we get a "The operation completed successfully" error
-                DeviceStream?.SetFeature(featureData);
+                SetFeatureAndTime();
+            }
+        }
+
+        void SetFeatureAndTime() {
+            if (DeviceStream != null) {
+                DeviceStream.SetFeature(featureData);
+                _mostRecentFeatureSetTime = DateTime.Now;
             }
         }
     }

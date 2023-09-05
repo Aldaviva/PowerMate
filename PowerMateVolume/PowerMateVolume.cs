@@ -12,12 +12,6 @@ using IVolumeChanger   volumeChanger = new VolumeChanger { VolumeIncrement = vol
 
 powerMate.LightBrightness = 0;
 
-CancellationTokenSource cancellationTokenSource = new();
-Console.CancelKeyPress += (_, eventArgs) => {
-    eventArgs.Cancel = true;
-    cancellationTokenSource.Cancel();
-};
-
 powerMate.InputReceived += (_, powerMateEvent) => {
     switch (powerMateEvent) {
         case { IsPressed: true, RotationDirection: RotationDirection.None }:
@@ -37,7 +31,24 @@ powerMate.InputReceived += (_, powerMateEvent) => {
 using IStandbyListener standbyListener = new EventLogStandbyListener();
 standbyListener.FatalError += (_, exception) =>
     MessageBox.Show("Event log subscription is broken, continuing without resume detection: " + exception, "PowerMateVolume", MessageBoxButtons.OK, MessageBoxIcon.Error);
-standbyListener.Resumed += (_, _) => powerMate.SetAllFeaturesIfStale();
+standbyListener.Resumed += (_, _) => {
+    try {
+        powerMate.SetAllFeaturesIfStale();
+    } catch (IOException) {
+        Thread.Sleep(2000);
+        try {
+            powerMate.SetAllFeaturesIfStale();
+        } catch (IOException) {
+            // device is probably in a bad state, but there's nothing we can do about it
+        }
+    }
+};
+
+CancellationTokenSource exitTokenSource = new();
+Console.CancelKeyPress += (_, eventArgs) => {
+    eventArgs.Cancel = true;
+    exitTokenSource.Cancel();
+};
 
 Console.WriteLine("Listening for PowerMate events");
-cancellationTokenSource.Token.WaitHandle.WaitOne();
+exitTokenSource.Token.WaitHandle.WaitOne();

@@ -12,6 +12,9 @@ public interface IStandbyListener: IDisposable {
 
 public class EventLogStandbyListener: IStandbyListener {
 
+    private const int StandByEventId = 42;
+    private const int ResumeEventId  = 107;
+
     public event EventHandler? StandingBy;
     public event EventHandler? Resumed;
     public event EventHandler<Exception>? FatalError;
@@ -21,7 +24,8 @@ public class EventLogStandbyListener: IStandbyListener {
     /// <exception cref="EventLogNotFoundException">if the given event log or file was not found</exception>
     /// <exception cref="UnauthorizedAccessException">if the log did not already exist and this program is not running elevated</exception>
     public EventLogStandbyListener() {
-        _logWatcher = new EventLogWatcher(new EventLogQuery("System", PathType.LogName, "*[System[Provider/@Name=\"Microsoft-Windows-Kernel-Power\" and (EventID=42 or EventID=107)]]"));
+        _logWatcher = new EventLogWatcher(new EventLogQuery("System", PathType.LogName,
+            $"*[System[Provider/@Name=\"Microsoft-Windows-Kernel-Power\" and (EventID={StandByEventId} or EventID={ResumeEventId})]]"));
 
         _logWatcher.EventRecordWritten += onEventRecord;
 
@@ -43,10 +47,10 @@ public class EventLogStandbyListener: IStandbyListener {
         } else {
             using EventRecord? record = e.EventRecord;
             switch (record?.Id) {
-                case 42:
+                case StandByEventId:
                     StandingBy?.Invoke(this, EventArgs.Empty);
                     break;
-                case 107:
+                case ResumeEventId:
                     Resumed?.Invoke(this, EventArgs.Empty);
                     break;
             }

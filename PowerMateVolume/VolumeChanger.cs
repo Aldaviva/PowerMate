@@ -22,9 +22,21 @@ public interface IVolumeChanger: IDisposable {
     void IncreaseVolume(int increments = 1);
 
     /// <summary>
+    /// Get or set the default audio output device's volume.
+    /// </summary>
+    /// <value>The absolute volume level, in the range <c>[0, 1]</c>. Will be clipped if it's set to a value outside that range.</value>
+    float Volume { get; set; }
+
+    /// <summary>
     /// <para>If the default audio output device is not currently muted, then mute it. Otherwise, unmute it.</para>
     /// </summary>
     void ToggleMute();
+
+    /// <summary>
+    /// Mute or unmute the default audio output device, or get whether or not it's currently muted.
+    /// </summary>
+    /// <value><see langword="true"/> if the device is or should be muted, or <see langword="false"/> if it is or should be unmuted.</value>
+    bool Muted { get; set; }
 
 }
 
@@ -74,17 +86,39 @@ public class VolumeChanger: IVolumeChanger {
         _audioOutputEndpoint = null;
     }
 
+    /// <inheritdoc />
     public void IncreaseVolume(int increments = 1) {
         if (_audioOutputVolume is not null && increments != 0) {
-            float newVolume = Math.Max(0, Math.Min(1, _audioOutputVolume.MasterVolumeLevelScalar + VolumeIncrement * increments));
-            _audioOutputVolume.MasterVolumeLevelScalar = newVolume;
+            Volume = _audioOutputVolume.MasterVolumeLevelScalar + VolumeIncrement * increments;
             // Console.WriteLine($"Set volume to {newVolume:P2}");
         }
     }
 
+    /// <inheritdoc />
+    public float Volume {
+        get => _audioOutputVolume?.MasterVolumeLevelScalar ?? 0;
+        set {
+            float newVolume = Math.Max(0, Math.Min(1, value));
+            if (_audioOutputVolume != null) {
+                _audioOutputVolume.MasterVolumeLevelScalar = newVolume;
+            }
+        }
+    }
+
+    /// <inheritdoc />
     public void ToggleMute() {
         if (_audioOutputVolume is not null) {
-            _audioOutputVolume.IsMuted ^= true;
+            Muted = !Muted;
+        }
+    }
+
+    /// <inheritdoc />
+    public bool Muted {
+        get => _audioOutputVolume?.IsMuted ?? true;
+        set {
+            if (_audioOutputVolume is not null) {
+                _audioOutputVolume.IsMuted = value;
+            }
         }
     }
 

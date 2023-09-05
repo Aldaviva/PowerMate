@@ -13,7 +13,7 @@
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-        <PackageTags>griffin powermate hid rotary-encoder</PackageTags>
+        <PackageTags>griffin powermate hid rotary-encoder usb knob dial</PackageTags>
         <PackageIcon>icon.jpg</PackageIcon>
         <PackageReadmeFile>Readme.md</PackageReadmeFile>
 
