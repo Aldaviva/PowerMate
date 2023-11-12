@@ -1,7 +1,7 @@
-﻿using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using HidClient;
+﻿using HidClient;
 using HidSharp;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace PowerMate;
 
@@ -115,7 +115,11 @@ public class PowerMateClient: AbstractHidClient, IPowerMateClient {
         } catch (IOException e) {
             if (e.InnerException is Win32Exception { NativeErrorCode: 0 }) {
                 // retry once with no delay if we get a "The operation completed successfully" error
-                SetFeatureAndTime();
+                try {
+                    SetFeatureAndTime();
+                } catch (IOException) {
+                    // give up, whether or not the cause was "The operation completed successfully"
+                }
             }
         }
 
