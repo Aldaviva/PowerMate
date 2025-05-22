@@ -1,5 +1,8 @@
-﻿using PowerMate;
+using PowerMate;
 using PowerMateVolume;
+using RuntimeUpgrade.Notifier;
+using RuntimeUpgrade.Notifier.Data;
+using Unfucked.Windows.Power;
 
 // ReSharper disable AccessToDisposedClosure - disposal happens at program shutdown, so access can't happen after that
 
@@ -39,7 +42,7 @@ standbyListener.Resumed += (_, _) => {
         try {
             powerMate.SetAllFeaturesIfStale();
         } catch (IOException) {
-            // device is probably in a bad state, but there's nothing we can do about it
+            // device is probably in a bad state, but there's nothing we can do about it except wait for the user to unplug it
         }
     }
 };
@@ -48,6 +51,11 @@ CancellationTokenSource exitTokenSource = new();
 Console.CancelKeyPress += (_, eventArgs) => {
     eventArgs.Cancel = true;
     exitTokenSource.Cancel();
+};
+
+using IRuntimeUpgradeNotifier runtimeUpgradeNotifier = new RuntimeUpgradeNotifier {
+    RestartStrategy = RestartStrategy.AutoRestartProcess,
+    ExitStrategy    = new CancellationTokenExit(exitTokenSource)
 };
 
 Console.WriteLine("Listening for PowerMate events");

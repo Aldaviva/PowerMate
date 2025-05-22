@@ -2,17 +2,17 @@
 
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
-        <TargetFramework>net7.0-windows</TargetFramework>
-        <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
+        <TargetFramework>net8.0-windows</TargetFramework>
+        <RuntimeIdentifier>win-x64</RuntimeIdentifier>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <LangVersion>latest</LangVersion>
         <RollForward>major</RollForward>
         <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
         <Authors>Ben Hutchison</Authors>
-        <Copyright>© 2023 $(Authors)</Copyright>
+        <Copyright>© 2025 $(Authors)</Copyright>
         <AssemblyTitle>PowerMate Volume</AssemblyTitle> <!-- File description -->
-        <Version>1.1.1</Version> <!-- Product version -->
+        <Version>1.2.0</Version> <!-- Product version -->
         <Product>$(AssemblyTitle)</Product> <!-- Product name -->
         <FileVersion>$(Version)</FileVersion> <!-- File version -->
         <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -20,6 +20,8 @@
         <UseWindowsForms>true</UseWindowsForms>
         <ApplicationIcon>powermate.ico</ApplicationIcon>
         <NoWarn>1701;1702;NU1701</NoWarn>
+        <DebugType>embedded</DebugType>
+        <SelfContained>false</SelfContained>
     </PropertyGroup>
 
     <ItemGroup>
@@ -28,6 +30,8 @@
 
     <ItemGroup>
         <PackageReference Include="CSCore" Version="1.2.1.2" />
+        <PackageReference Include="RuntimeUpgradeNotifier" Version="1.0.0-beta7" />
+        <PackageReference Include="Unfucked.Windows" Version="0.0.1-beta.1" />
     </ItemGroup>
 
     <ItemGroup>

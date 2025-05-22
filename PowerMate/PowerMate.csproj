@@ -7,7 +7,7 @@
         <PackageId>PowerMate</PackageId>
         <Product>PowerMate</Product>
         <Description>Receive events and control the light on a Griffin PowerMate USB device</Description>
-        <Copyright>© 2023 Ben Hutchison</Copyright>
+        <Copyright>© 2025 Ben Hutchison</Copyright>
         <PackageProjectUrl>https://github.com/Aldaviva/PowerMate</PackageProjectUrl>
         <RepositoryUrl>https://github.com/Aldaviva/PowerMate.git</RepositoryUrl>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -38,7 +38,7 @@
 
     <ItemGroup>
         <PackageReference Include="HidClient" Version="1.0.1" />
-        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
     </ItemGroup>
 
     <ItemGroup>

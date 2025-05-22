@@ -1,12 +1,32 @@
 {
   "version": 1,
   "dependencies": {
-    "net7.0-windows7.0": {
+    "net8.0-windows7.0": {
       "CSCore": {
         "type": "Direct",
         "requested": "[1.2.1.2, )",
         "resolved": "1.2.1.2",
         "contentHash": "DoQKUcdZLQawo3mOg8CvujJD9YkvTt6NtEu7S+OCo8+ySl8eCeUw4LFyL2E1OcAkPU918HZM6sUNcvIMcXWg6g=="
+      },
+      "RuntimeUpgradeNotifier": {
+        "type": "Direct",
+        "requested": "[1.0.0-beta7, )",
+        "resolved": "1.0.0-beta7",
+        "contentHash": "Djfje5FjC4IMyTQnzjnZ8vrVKXhwdj2aEtCz+KWaNWxEmw1Abvi7umLJ7McILpHl+DndM6eN+q7CZadiKpTOww==",
+        "dependencies": {
+          "Microsoft.Extensions.Logging.Abstractions": "9.0.5",
+          "System.Management": "9.0.5"
+        }
+      },
+      "Unfucked.Windows": {
+        "type": "Direct",
+        "requested": "[0.0.1-beta.1, )",
+        "resolved": "0.0.1-beta.1",
+        "contentHash": "w/+ZPkg+HhnFsH5rYUnciaO+WZjFqWgbJX7QtR5TmNzw9EmWjVuVBOnruwZJRMgrAS/hNqyQulEPdXpoDZgyjw==",
+        "dependencies": {
+          "Unfucked": "0.0.1-beta.1",
+          "mwinapi": "0.3.0.5"
+        }
       },
       "HidClient": {
         "type": "Transitive",
@@ -21,6 +41,51 @@
         "resolved": "2.1.0",
         "contentHash": "UTdxWvbgp2xzT1Ajaa2va+Qi3oNHJPasYmVhbKI2VVdu1VYP6yUG+RikhsHvpD7iM0S8e8UYb5Qm/LTWxx9QAA=="
       },
+      "Microsoft.Extensions.DependencyInjection.Abstractions": {
+        "type": "Transitive",
+        "resolved": "9.0.5",
+        "contentHash": "cjnRtsEAzU73aN6W7vkWy8Phj5t3Xm78HSqgrbh/O4Q9SK/yN73wZVa21QQY6amSLQRQ/M8N+koGnY6PuvKQsw=="
+      },
+      "Microsoft.Extensions.Logging.Abstractions": {
+        "type": "Transitive",
+        "resolved": "9.0.5",
+        "contentHash": "pP1PADCrIxMYJXxFmTVbAgEU7GVpjK5i0/tyfU9DiE0oXQy3JWQaOVgCkrCiePLgS8b5sghM3Fau3EeHiVWbCg==",
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "9.0.5",
+          "System.Diagnostics.DiagnosticSource": "9.0.5"
+        }
+      },
+      "mwinapi": {
+        "type": "Transitive",
+        "resolved": "0.3.0.5",
+        "contentHash": "jb1ox29TMcxe0klNF5yui+ehXHUdEZOuykYaoGI9Okt0s7K5bNWxOzqsng0VVVvvFnW9wNfS4hWYOsE9Xup0GQ==",
+        "dependencies": {
+          "System.Management": "6.0.0"
+        }
+      },
+      "System.CodeDom": {
+        "type": "Transitive",
+        "resolved": "9.0.5",
+        "contentHash": "cuzLM2MWutf9ZBEMPYYfd0DXwYdvntp7VCT6a/wvbKCa2ZuvGmW74xi+YBa2mrfEieAXqM4TNKlMmSnfAfpUoQ=="
+      },
+      "System.Diagnostics.DiagnosticSource": {
+        "type": "Transitive",
+        "resolved": "9.0.5",
+        "contentHash": "WoI5or8kY2VxFdDmsaRZ5yaYvvb+4MCyy66eXo79Cy1uMa7qXeGIlYmZx7R9Zy5S4xZjmqvkk2V8L6/vDwAAEA=="
+      },
+      "System.Management": {
+        "type": "Transitive",
+        "resolved": "9.0.5",
+        "contentHash": "n6o9PZm9p25+zAzC3/48K0oHnaPKTInRrxqFq1fi/5TPbMLjuoCm/h//mS3cUmSy+9AO1Z+qsC/Ilt/ZFatv5Q==",
+        "dependencies": {
+          "System.CodeDom": "9.0.5"
+        }
+      },
+      "Unfucked": {
+        "type": "Transitive",
+        "resolved": "0.0.1-beta.1",
+        "contentHash": "K20GUaGtfJ0uPLaWzQSFkM8zjWdNl6jTWicSwxb0EV7w0vJ433TUVgWB6zO9gYXwNLrlbWK4GJHZMo+NLA4nOw=="
+      },
       "powermate": {
         "type": "Project",
         "dependencies": {
@@ -28,6 +93,15 @@
         }
       }
     },
-    "net7.0-windows7.0/win10-x64": {}
+    "net8.0-windows7.0/win-x64": {
+      "System.Management": {
+        "type": "Transitive",
+        "resolved": "9.0.5",
+        "contentHash": "n6o9PZm9p25+zAzC3/48K0oHnaPKTInRrxqFq1fi/5TPbMLjuoCm/h//mS3cUmSy+9AO1Z+qsC/Ilt/ZFatv5Q==",
+        "dependencies": {
+          "System.CodeDom": "9.0.5"
+        }
+      }
+    }
   }
 }
